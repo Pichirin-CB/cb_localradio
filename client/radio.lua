@@ -4,8 +4,7 @@ Radio = {
     frequency = 0,
     volume = Config.Radio.defaultVolume,
     hasSignal = false,
-    signalNetwork = nil,
-    talking = false
+    signalNetwork = nil
 }
 
 local function pma()
@@ -55,21 +54,7 @@ local function setPmaChannel(channel)
     return true
 end
 
-local function stopRadioTalking()
-    if not Radio.talking then
-        return
-    end
-
-    Radio.talking = false
-
-    if pma() then
-        ExecuteCommand('-radiotalk')
-    end
-end
-
 local function leaveChannel(silent)
-    stopRadioTalking()
-
     if pma() then
         exports['pma-voice']:setRadioChannel(0)
     end
@@ -80,7 +65,8 @@ local function leaveChannel(silent)
     SendNUIMessage({
         action = 'state',
         frequency = 0,
-        signal = Radio.hasSignal
+        signal = Radio.hasSignal,
+        volume = Radio.volume
     })
 
     if not silent then
@@ -471,8 +457,6 @@ AddEventHandler(
             return
         end
 
-        stopRadioTalking()
-
         if pma() then
             exports['pma-voice']:setRadioChannel(0)
         end
@@ -501,12 +485,5 @@ exports(
     'GetFrequency',
     function()
         return Radio.frequency
-    end
-)
-
-exports(
-    'IsTalking',
-    function()
-        return Radio.talking
     end
 )
