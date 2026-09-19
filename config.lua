@@ -2,10 +2,6 @@ Config = {}
 
 Config.Debug = false
 
--- Recurso de inventario que se usara para la radio y las antenas.
--- En tu servidor actual puedes dejar ox_inventory.
-Config.Inventory = 'ox_inventory'
-
 Config.Items = {
     radio = 'radio',
     antennaKit = 'radio_antenna',
@@ -17,13 +13,9 @@ Config.Items = {
 }
 
 Config.Antenna = {
-    -- Alcance de una antena construible.
     defaultRadius = 1000.0,
-
-    -- No permite construir otra antena dentro de esta distancia.
     minimumDistance = 500.0,
 
-    -- Las antenas construibles se degradan con el tiempo.
     degradation = {
         enabled = true,
         intervalMinutes = 60,
@@ -31,16 +23,10 @@ Config.Antenna = {
         minimumHealthBeforeMaintenance = 95.0
     },
 
-    -- Props vanilla: no se reemplazan; son las antenas que ya existen en GTA V.
     playerModel = 'prop_aerial_01a',
 
-    -- Cuando una antena esta rota no transmite.
     brokenAt = 0.0,
-
-    -- Porcentaje a partir del cual el blip pasa a mantenimiento.
     maintenanceAt = 60.0,
-
-    -- El jugador debe estar cerca para reparar/retirar.
     interactionDistance = 3.0,
 
     construction = {
@@ -73,16 +59,9 @@ Config.Antenna = {
 }
 
 Config.Network = {
-    -- Distancia maxima entre dos antenas para crear un enlace.
     linkDistance = 1200.0,
-
-    -- Permite encadenar A -> B -> C.
     allowChaining = true,
-
-    -- Recalculo de red en servidor.
     refreshSeconds = 5,
-
-    -- Comprueba la señal del jugador en cliente.
     playerCheckSeconds = 2
 }
 
@@ -90,20 +69,11 @@ Config.Radio = {
     enabled = true,
     command = 'localradio',
     key = 'F7',
-
-    -- Frecuencias permitidas.
     minFrequency = 1,
     maxFrequency = 500,
-
     defaultVolume = 50,
-
-    -- Si es true, la radio no puede entrar en un canal si el jugador no tiene cobertura.
     requireSignal = true,
-
-    -- El canal se mantiene cuando el jugador se mueve dentro de la red.
     leaveWhenOutOfCoverage = true,
-
-    -- Si la antena se rompe, los jugadores que dependian de esa zona perderan señal.
     usePhysicalCoverage = true
 }
 
@@ -111,7 +81,6 @@ Config.Blips = {
     enabled = true,
     showWorldAntennas = true,
     showPlayerAntennas = true,
-
     sprite = 459,
     scale = 0.70,
 
@@ -128,6 +97,7 @@ Config.Blips = {
 Config.Radius = {
     enabled = false,
     drawDistance = 2500.0,
+
     color = {
         active = { r = 80, g = 220, b = 120, a = 35 },
         maintenance = { r = 255, g = 160, b = 40, a = 35 },
@@ -141,9 +111,6 @@ Config.Target = {
 }
 
 Config.WorldAntennas = {
-    -- Estas ubicaciones proceden de objetos vanilla de GTA V.
-    -- El script NO crea otro prop encima: usa la estructura existente.
-    -- Se registran como infraestructura reparable.
     {
         id = 'world_ant_01',
         model = 'sc1_23_antenna',

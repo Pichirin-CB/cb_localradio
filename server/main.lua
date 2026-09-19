@@ -17,22 +17,3 @@ CreateThread(function()
         print('[cb_localradio] Server bridge ready.')
     end
 end)
-
-
-exports('useRadio', function(event, item, inventory, slot, data)
-    if event == 'usingItem' then
-        local source = inventory and inventory.id
-        if source then
-            TriggerClientEvent('cb_localradio:client:openRadio', source)
-        end
-    end
-end)
-
-exports('useAntenna', function(event, item, inventory, slot, data)
-    if event == 'usingItem' then
-        local source = inventory and inventory.id
-        if source then
-            TriggerClientEvent('cb_localradio:client:startPlacement', source)
-        end
-    end
-end)
