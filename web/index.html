@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>CB Local Radio</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main id="radio" class="hidden">
+        <section class="device">
+            <div class="top">
+                <div class="brand">CB <span>LOCAL RADIO</span></div>
+                <button id="close">×</button>
+            </div>
+
+            <div class="screen">
+                <div class="status">
+                    <span id="led"></span>
+                    <span id="signalText">SIN SEÑAL</span>
+                </div>
+
+                <div id="frequency">000.0</div>
+                <div class="unit">MHz</div>
+
+                <div class="network">
+                    <span>RED</span>
+                    <strong id="networkState">DESCONECTADA</strong>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button id="down">−</button>
+                <button id="channel">FRECUENCIA</button>
+                <button id="up">+</button>
+            </div>
+
+            <div class="volume">
+                <div class="volumeLabel">
+                    <span>VOLUMEN</span>
+                    <strong id="volumeValue">50%</strong>
+                </div>
+                <input id="volume" type="range" min="0" max="100" value="50">
+            </div>
+
+            <div class="actions">
+                <button id="join">CONECTAR</button>
+                <button id="leave" class="danger">DESCONECTAR</button>
+            </div>
+
+            <div class="hint">ESC para cerrar · Usa la rueda o los botones para cambiar frecuencia</div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

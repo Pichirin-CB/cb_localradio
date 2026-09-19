@@ -1,0 +1,77 @@
+-- cb_localradio - core_inventory item snippet
+-- Register this item in your Core Inventory item source (items.lua / items table / C8RE tools).
+-- Required Core Inventory fields: name, label, x, y, category, description.
+-- category must exist in Config.ItemCategories from core_inventory.
+
+return {
+    ['radio'] = {
+        label = 'Radio portátil',
+        weight = 800,
+        stack = false,
+        close = true,
+        description = 'Radio portátil para comunicarse dentro de una red de antenas.',
+        x = 1,
+        y = 2,
+        category = 'misc',
+    },
+    ['radio_antenna'] = {
+        label = 'Kit de antena',
+        weight = 3500,
+        stack = true,
+        close = true,
+        description = 'Kit para construir una antena de radio.',
+        x = 2,
+        y = 2,
+        category = 'misc',
+    },
+    ['radio_repair_kit'] = {
+        label = 'Kit de reparación de radio',
+        weight = 1200,
+        stack = true,
+        close = true,
+        description = 'Herramientas y componentes para reparar una antena rota.',
+        x = 2,
+        y = 2,
+        category = 'misc',
+    },
+    ['radio_maintenance_kit'] = {
+        label = 'Kit de mantenimiento de antena',
+        weight = 900,
+        stack = true,
+        close = true,
+        description = 'Materiales para mantener una antena de radio.',
+        x = 2,
+        y = 2,
+        category = 'misc',
+    },
+    ['radio_cable'] = {
+        label = 'Cable de radio',
+        weight = 100,
+        stack = true,
+        close = false,
+        description = 'Cable utilizado para instalaciones de radio.',
+        x = 1,
+        y = 1,
+        category = 'misc',
+    },
+    ['electronic_parts'] = {
+        label = 'Componentes electrónicos',
+        weight = 150,
+        stack = true,
+        close = false,
+        description = 'Componentes recuperados de equipos electrónicos.',
+        x = 1,
+        y = 1,
+        category = 'misc',
+    },
+    ['scrap_metal'] = {
+        label = 'Metal de desguace',
+        weight = 250,
+        stack = true,
+        close = false,
+        description = 'Metal reutilizable procedente de vehículos y estructuras.',
+        x = 1,
+        y = 1,
+        category = 'misc',
+    },
+}
