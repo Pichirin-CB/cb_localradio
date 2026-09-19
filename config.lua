@@ -69,12 +69,21 @@ Config.Radio = {
     enabled = true,
     command = 'localradio',
     key = 'F7',
+    talkKey = 'LMENU',
+    talkCommand = '+radiotalk',
     minFrequency = 1,
     maxFrequency = 500,
     defaultVolume = 50,
     requireSignal = true,
     leaveWhenOutOfCoverage = true,
-    usePhysicalCoverage = true
+    usePhysicalCoverage = true,
+    
+    audio = {
+        enabled = true,
+        submix = true,
+        animation = true,
+        micClicks = true
+    }
 }
 
 Config.Blips = {
