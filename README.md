@@ -1,166 +1,101 @@
 # CB Local Radio
 
-![CB Studios](https://img.shields.io/badge/CB%20Studios-CB%20Local%20Radio-black)
-![FiveM](https://img.shields.io/badge/FiveM-Resource-orange)
-![Version](https://img.shields.io/badge/Version-1.0.0-gold)
-![License](https://img.shields.io/badge/License-MIT-blue)
+**Physical Radio Network for FiveM Survival Servers**
 
----
+CB Local Radio is a survival-oriented radio network designed around physical infrastructure.
 
-## Resource Information
+Players need a radio, access to an active antenna network, and valid coverage before they can communicate through the radio system.
 
-**Resource:** `cb_localradio`
-**Version:** `1.0.0`
-**Author:** CB Studios
-**Type:** FiveM / Survival Local Radio Network
-**License:** MIT
+The resource is designed for survival, zombie, post-apocalyptic and infrastructure-focused FiveM servers.
 
 ---
 
 ## Overview
 
-**CB Local Radio** is a physical local radio network designed for FiveM survival, zombie and post-apocalyptic servers.
+CB Local Radio combines:
 
-Unlike a traditional global radio system, CB Local Radio requires players to have access to a physical radio and active antenna coverage.
+- Physical radio items
+- Configurable radio frequencies
+- Antenna infrastructure
+- Signal coverage
+- Antenna networks
+- Network chaining
+- Antenna degradation
+- Repair and maintenance
+- Persistent antenna storage
+- Custom radio NUI
+- PMA-Voice integration
+- Framework and inventory abstraction through HateBridge
 
-The radio network is based on physical infrastructure placed throughout the game world.
+The resource separates **radio infrastructure** from **voice transmission**.
 
-Players can:
+CB Local Radio manages the radio network.
 
-* Use a physical radio item.
-* Connect to configurable radio frequencies.
-* Build their own radio antennas.
-* Repair damaged antennas.
-* Maintain antenna infrastructure.
-* Remove antennas they own.
-* Use existing GTA V world antennas.
-* Extend coverage through connected antenna networks.
-* Lose radio access when leaving active coverage.
-* Communicate through PMA-Voice.
-
-CB Local Radio uses **HateBridge** as its framework and inventory abstraction layer.
-
-It does not directly depend on a specific inventory implementation.
+PMA-Voice manages the actual voice communication.
 
 ---
 
-# Features
+## Features
 
-## Radio System
+### Radio
 
-* Physical radio item requirement.
-* Local radio network.
-* Configurable frequency range.
-* Signal verification.
-* Physical coverage requirements.
-* Automatic channel removal outside coverage.
-* Configurable radio volume.
-* Custom NUI.
-* PMA-Voice integration.
-* Server-side channel management.
+- Physical radio item
+- Configurable frequency range
+- Signal-based radio access
+- Automatic loss of radio channel outside coverage
+- Adjustable radio volume
+- Custom NUI
+- PMA-Voice channel integration
+- Server-side channel handling
 
-## Antenna System
+### Antennas
 
-* Player-built antennas.
-* Existing GTA V world antennas.
-* Antenna health/integrity.
-* Automatic degradation.
-* Maintenance system.
-* Repair system.
-* Broken antenna state.
-* Antenna ownership.
-* Minimum construction distance.
-* Configurable antenna coverage radius.
-* Configurable item return probability when removing antennas.
+- Player-built antennas
+- World antennas
+- Configurable coverage radius
+- Antenna ownership
+- Antenna health
+- Automatic degradation
+- Repair system
+- Maintenance system
+- Broken antenna state
+- Antenna removal
+- Optional antenna-kit recovery
 
-## Network System
+### Radio Networks
 
-* Automatic antenna linking.
-* Configurable connection distance.
-* Chained antenna networks.
-* Network refresh system.
-* Physical coverage detection.
-* Server-side network synchronization.
+- Automatic antenna linking
+- Configurable connection distance
+- Network chaining
+- Persistent antenna infrastructure
+- Physical coverage detection
+- Server-side network synchronization
 
-Example:
+### Infrastructure
 
-```text
-A <--------> B <--------> C
-```
-
-When network chaining is enabled, `A`, `B` and `C` can operate as part of the same connected network.
-
----
-
-# Dependencies
-
-CB Local Radio requires:
-
-* FiveM
-* HateBridge
-* oxmysql
-* pma-voice
+- oxmysql persistence
+- HateBridge integration
+- Inventory abstraction
+- Framework abstraction
+- Direct proximity interaction
+- Custom NUI
+- Included inventory item definitions
+- Included inventory icons
+- Included SQL installer
 
 ---
 
-# HateBridge
+# Requirements
 
-CB Local Radio uses **HateBridge** as the abstraction layer between the resource and the framework/inventory system.
+The following resources are required:
 
-HateBridge provides a unified API for supported frameworks and server systems.
+| Dependency | Purpose |
+| --- | --- |
+| `hate-bridge` | Framework and inventory abstraction |
+| `oxmysql` | Persistent antenna storage |
+| `pma-voice` | Radio voice communication |
 
-## Official Repository
-
-https://github.com/HATE-dev/hate-bridge
-
-## Documentation
-
-https://hate-development.gitbook.io/hate-development-docs/hate-framework-bridge
-
-CB Local Radio uses the bridge for:
-
-* Framework abstraction.
-* Item checks.
-* Item removal.
-* Item addition.
-* Usable item registration.
-* Notifications.
-* Progress handling.
-
-CB Local Radio should not directly access framework-specific inventory exports.
-
----
-
-# Architecture
-
-```text
-CB Local Radio
-      │
-      ├── HateBridge
-      │      ├── Framework abstraction
-      │      ├── Inventory abstraction
-      │      ├── Item checks
-      │      ├── Item removal
-      │      ├── Item addition
-      │      ├── Notifications
-      │      └── Progress handling
-      │
-      ├── oxmysql
-      │      └── Database persistence
-      │
-      └── pma-voice
-             ├── Radio voice transport
-             ├── Radio PTT
-             ├── Radio animation
-             ├── Radio audio
-             └── Radio submix
-```
-
-The resource intentionally separates radio infrastructure from voice transport.
-
-CB Local Radio controls the radio network.
-
-PMA-Voice controls actual voice transmission.
+`ox_lib` is recommended for environments that use it as part of their server infrastructure.
 
 ---
 
@@ -170,31 +105,31 @@ PMA-Voice controls actual voice transmission.
 
 Install and configure:
 
-```text
-oxmysql
-HateBridge
-pma-voice
-```
+- HateBridge
+- oxmysql
+- PMA-Voice
 
-HateBridge repository:
+### HateBridge
 
-```text
+Repository:
+
 https://github.com/HATE-dev/hate-bridge
-```
 
-HateBridge documentation:
+Documentation:
 
-```text
 https://hate-development.gitbook.io/hate-development-docs/hate-framework-bridge
-```
 
-Make sure all dependencies are working before starting CB Local Radio.
+### PMA-Voice
+
+Repository:
+
+https://github.com/AvarianKnight/pma-voice
 
 ---
 
 ## 2. Install CB Local Radio
 
-Place the resource inside your resources directory.
+Place the resource inside your FiveM resources directory.
 
 Example:
 
@@ -202,22 +137,100 @@ Example:
 resources/
 └── [cb]/
     └── cb_localradio/
+````
+
+---
+
+## 3. Install the Database
+
+Run:
+
+```text
+INSTALL_FILES/sql/install.sql
+```
+
+This creates the database table required for persistent player antennas.
+
+Database table:
+
+```text
+cb_localradio_antennas
 ```
 
 ---
 
-## 3. Configure the Resource
+## 4. Install Inventory Items
 
-Open:
+The resource includes item definitions for:
+
+* ox_inventory
+* Core Inventory
+
+### ox_inventory
+
+Use:
 
 ```text
-cb_localradio/config.lua
+INSTALL_FILES/ox_inventory_items.lua
 ```
 
-Main configuration sections:
+### Core Inventory
 
-```lua
-Config.Debug
+Use:
+
+```text
+INSTALL_FILES/core_inventory_items.lua
+```
+
+The item names used by the resource are:
+
+| Item                    | Purpose                    |
+| ----------------------- | -------------------------- |
+| `radio`                 | Portable radio             |
+| `radio_antenna`         | Antenna construction kit   |
+| `radio_repair_kit`      | Repairs broken antennas    |
+| `radio_maintenance_kit` | Maintains damaged antennas |
+| `radio_cable`           | Configured material        |
+| `scrap_metal`           | Configured material        |
+| `electronic_parts`      | Configured material        |
+
+The additional material items are available for future crafting, scavenging or server-specific integrations.
+
+---
+
+## 5. Install Inventory Icons
+
+Inventory icons are included in:
+
+```text
+INSTALL_FILES/inventory_icon/
+```
+
+Included icons:
+
+```text
+electronic_parts.png
+radio.png
+radio_antenna.png
+radio_cable.png
+radio_maintenance_kit.png
+radio_repair_kit.png
+scrap_metal.png
+```
+
+---
+
+## 6. Configure the Resource
+
+Main configuration file:
+
+```text
+config.lua
+```
+
+The configuration is divided into:
+
+```text
 Config.Items
 Config.Antenna
 Config.Network
@@ -230,83 +243,76 @@ Config.Messages
 
 ---
 
-# Server Configuration
+## 7. Start the Resources
 
-A recommended start order is:
+Recommended order:
 
 ```cfg
 ensure oxmysql
-ensure ox_lib
-
 ensure pma-voice
 ensure hate-bridge
 ensure cb_localradio
 ```
 
-If your server uses different resource folder names, adjust the `ensure` lines accordingly.
+If your server uses `ox_lib`, start it before resources that require it.
 
 ---
 
-# PMA-Voice Configuration
+# PMA-Voice Integration
 
-CB Local Radio uses **PMA-Voice** for actual radio voice communication.
+CB Local Radio uses PMA-Voice as the voice transport layer.
 
-CB Local Radio controls:
+### CB Local Radio handles
 
-* Radio frequency.
-* Radio channel assignment.
-* Signal.
-* Antenna coverage.
-* Antenna networks.
-* Radio volume.
-* Radio NUI.
+* Radio item
+* Frequencies
+* Signal
+* Antenna coverage
+* Antenna networks
+* Channel assignment
+* Radio volume
+* Radio interface
 
-PMA-Voice controls:
+### PMA-Voice handles
 
-* Radio push-to-talk.
-* Voice transmission.
-* Radio animation.
-* Radio audio.
-* Radio submix.
-* Radio voice transport.
+* Radio transmission
+* Push-to-talk
+* Voice transport
+* Radio animation
+* Radio audio
+* Radio submix
 
-This separation is intentional.
+This separation prevents multiple resources from attempting to control the same radio transmission system.
 
 ---
 
-## Recommended PMA-Voice Settings
+## Radio Push-to-Talk
 
-Add or verify the following in `server.cfg`:
+Radio PTT is handled by PMA-Voice.
+
+CB Local Radio does **not** register its own radio-talk key.
+
+The resource intentionally does not use:
+
+```lua
+Config.Radio.talkKey
+```
+
+Configure the radio key through PMA-Voice.
+
+Example:
 
 ```cfg
-setr voice_useNativeAudio true
-setr voice_defaultCycle "GRAVE"
-setr voice_defaultVolume 0.3
-setr voice_enableRadios 1
-setr voice_enableRadioAnim 1
-setr voice_enableSubmix 1
-setr voice_enableCalls 0
 setr voice_defaultRadio "LMENU"
-setr voice_onClickVolume 10
-setr voice_offClickVolume 3
-setr voice_syncData 1
-setr voice_useSendingRangeOnly false
-set mumble_allowExternalConnections true
 ```
 
-The default PMA-Voice radio push-to-talk key is:
-
-```text
-LEFT ALT
-```
-
-CB Local Radio does not register another radio-talk key.
+The exact key can be changed according to your PMA-Voice configuration.
 
 ---
 
-# Radio Controls
+# Using the Radio
 
-## Open Radio
+## Opening the Radio
 
 Default command:
 
@@ -320,546 +326,255 @@ Default key:
 F7
 ```
 
-The key can be changed with:
-
-```lua
-Config.Radio.key
-```
-
-The command can be changed with:
-
-```lua
-Config.Radio.command
-```
-
----
-
-## Radio Push-to-Talk
-
-Radio transmission is controlled by PMA-Voice.
-
-Default:
+Both can be changed through:
 
 ```text
-LEFT ALT
+config.lua
 ```
-
-Configured through:
-
-```cfg
-setr voice_defaultRadio "LMENU"
-```
-
-Do not add another radio transmission key to CB Local Radio.
 
 ---
 
-# Radio Frequencies
+## Connecting to a Frequency
+
+The player must:
+
+1. Own a radio.
+2. Have active signal coverage.
+3. Select a valid frequency.
+4. Connect to the frequency.
+
+Once connected, PMA-Voice handles the radio transmission.
+
+---
+
+## Radio Frequencies
 
 The default frequency range is:
 
-```lua
-minFrequency = 1
-maxFrequency = 500
+```text
+1 - 500
 ```
 
-Players can connect to any valid frequency inside that range.
+This range can be changed through the radio configuration.
 
-Example:
+---
+
+## Radio Signal
+
+Radio access can require physical antenna coverage.
+
+When signal is enabled:
 
 ```text
-100
-125
-250
-500
+Inside coverage
+    ↓
+Radio available
+
+Outside coverage
+    ↓
+Signal lost
 ```
 
----
-
-# Signal Requirement
-
-The following configuration controls whether a signal is required:
-
-```lua
-Config.Radio.requireSignal
-```
-
-Default:
-
-```lua
-requireSignal = true
-```
-
-When enabled, the player must be inside active antenna coverage before joining a radio frequency.
-
----
-
-# Leaving Coverage
-
-The following option controls automatic channel removal:
-
-```lua
-Config.Radio.leaveWhenOutOfCoverage
-```
-
-Default:
-
-```lua
-leaveWhenOutOfCoverage = true
-```
-
-When enabled, leaving antenna coverage automatically removes the player from the PMA-Voice radio channel.
-
----
-
-# Radio Volume
-
-Default radio volume:
-
-```lua
-defaultVolume = 50
-```
-
-The player can adjust the radio volume through the NUI.
-
-The value is passed to PMA-Voice.
-
----
-
-# Items
-
-Default configuration:
-
-```lua
-Config.Items = {
-    radio = 'radio',
-    antennaKit = 'radio_antenna',
-    repairKit = 'radio_repair_kit',
-    maintenanceKit = 'radio_maintenance_kit',
-    cable = 'radio_cable',
-    metal = 'scrap_metal',
-    electronics = 'electronic_parts'
-}
-```
-
-The actual inventory implementation is handled through HateBridge.
-
-The configured item names must exist in the inventory system used by the server.
-
----
-
-# Items Used by CB Local Radio
-
-The current resource actively uses:
-
-```text
-radio
-radio_antenna
-radio_repair_kit
-radio_maintenance_kit
-```
-
----
-
-## Radio
-
-Item:
-
-```text
-radio
-```
-
-The player must have a radio before opening or using the local radio system.
-
----
-
-## Antenna Kit
-
-Item:
-
-```text
-radio_antenna
-```
-
-Used to construct a player antenna.
-
-The item is removed when the antenna is successfully installed.
-
-When removing an owned antenna, the resource can optionally return the kit.
-
-The return behavior is controlled by:
-
-```lua
-Config.Antenna.construction.itemReturnOnRemove
-Config.Antenna.construction.returnPercent
-```
-
-Example:
-
-```lua
-itemReturnOnRemove = true
-returnPercent = 75
-```
-
-This means there is a **75% probability** of receiving one `radio_antenna` back when removing the antenna.
-
----
-
-## Repair Kit
-
-Item:
-
-```text
-radio_repair_kit
-```
-
-Used to repair a broken antenna.
-
-The amount repaired is controlled by:
-
-```lua
-Config.Antenna.repair.health
-```
-
-Default:
-
-```lua
-health = 35.0
-```
-
----
-
-## Maintenance Kit
-
-Item:
-
-```text
-radio_maintenance_kit
-```
-
-Used for antenna maintenance and repair of non-broken antennas.
-
-The amount restored is controlled by:
-
-```lua
-Config.Antenna.maintenance.health
-```
-
-Default:
-
-```lua
-health = 15.0
-```
-
----
-
-# Additional Configured Materials
-
-The configuration also contains:
-
-```text
-radio_cable
-scrap_metal
-electronic_parts
-```
-
-These items are currently configured for future crafting, scavenging or server-specific integrations.
-
-They are not currently consumed by the antenna construction, repair or maintenance logic.
+The resource can automatically remove the player from the radio channel when they leave active coverage.
 
 ---
 
 # Antenna System
 
-CB Local Radio supports two antenna types:
+CB Local Radio supports two antenna types.
 
-```text
-Player Antennas
-World Antennas
-```
+## Player Antennas
 
----
-
-# Player Antennas
-
-Players can construct antennas using:
+Player antennas are constructed using:
 
 ```text
 radio_antenna
 ```
 
-The construction system supports:
+Player antennas are persistent and stored in the database.
 
-* Placement.
-* Position validation.
-* Rotation.
-* Construction progress.
-* Construction animation.
-* Minimum distance validation.
-* Ownership.
-* Removal.
-* Optional item return.
+They support:
 
-Configuration:
-
-```lua
-Config.Antenna.construction
-```
+* Placement
+* Ownership
+* Coverage
+* Health
+* Degradation
+* Repair
+* Maintenance
+* Removal
+* Optional item recovery
 
 ---
 
-# Antenna Construction
+## World Antennas
 
-Default construction duration:
-
-```lua
-duration = 15000
-```
-
-The construction animation is configured through:
-
-```lua
-Config.Antenna.construction.animation
-```
-
----
-
-# Minimum Antenna Distance
-
-Player antennas cannot be installed too close to another antenna.
-
-Default:
-
-```lua
-minimumDistance = 500.0
-```
-
-This prevents unnecessary antenna clustering.
-
----
-
-# Removing Antennas
-
-Only the owner of a player-built antenna can remove it.
-
-Default key:
+World antennas are predefined antenna locations configured in:
 
 ```text
-H
-```
-
-The server validates:
-
-* Antenna existence.
-* Antenna type.
-* Player distance.
-* Antenna ownership.
-
----
-
-# Antenna Item Return
-
-The return system is controlled by:
-
-```lua
-itemReturnOnRemove = true
-returnPercent = 75
-```
-
-`returnPercent` represents a probability.
-
-Examples:
-
-```text
-0   = 0% chance
-25  = 25% chance
-50  = 50% chance
-75  = 75% chance
-100 = 100% chance
-```
-
-The resource returns one antenna kit when the probability check succeeds.
-
----
-
-# World Antennas
-
-Existing GTA V antenna infrastructure can be configured through:
-
-```lua
 Config.WorldAntennas
+```
+
+These can represent:
+
+* Radio towers
+* Communication towers
+* Mobile antenna masts
+* Existing GTA infrastructure
+
+World antennas do not require players to construct them.
+
+---
+
+# Antenna Coverage
+
+Each antenna has a configurable coverage radius.
+
+The default player antenna radius is:
+
+```text
+1000 meters
+```
+
+World antennas can use individual coverage values.
+
+Coverage is calculated from the player's physical position.
+
+---
+
+# Antenna Networks
+
+Antennas can automatically connect when they are within the configured network distance.
+
+Default network link distance:
+
+```text
+1200 meters
 ```
 
 Example:
 
-```lua
-{
-    id = 'world_ant_01',
-    model = 'sc1_23_antenna',
-    coords = vector3(
-        203.69232,
-        -1664.9331,
-        49.81714
-    ),
-    heading = 0.0,
-    radius = 1100.0
-}
+```text
+A ───── B ───── C
 ```
 
-Each world antenna supports:
+When network chaining is enabled, antenna B can connect the network between A and C.
 
-* Unique ID.
-* World model.
-* Coordinates.
-* Heading.
-* Coverage radius.
+This allows radio infrastructure to cover larger areas without requiring every antenna to directly reach every other antenna.
 
 ---
 
 # Antenna Health
 
-Every antenna has an integrity value.
+Player antennas have a health value.
 
-Degradation is controlled through:
+Antennas can:
 
-```lua
-Config.Antenna.degradation
-```
+* Operate normally
+* Require maintenance
+* Become broken
 
-Default:
+Health degradation can be enabled or disabled through the configuration.
 
-```lua
-degradation = {
-    enabled = true,
-    intervalMinutes = 60,
-    amount = 5.0,
-    minimumHealthBeforeMaintenance = 95.0
-}
-```
-
-This means antennas gradually lose integrity over time.
-
----
-
-# Antenna States
-
-Antennas can have three states:
+Default degradation:
 
 ```text
-active
-maintenance
-broken
+Every 60 minutes
+-5 health
 ```
-
-The state is calculated from the antenna health.
-
-Default:
-
-```lua
-brokenAt = 0.0
-maintenanceAt = 60.0
-```
-
-Therefore:
-
-```text
-Health <= 0
-    = broken
-
-Health < 60
-    = maintenance
-
-Health >= 60
-    = active
-```
-
----
-
-# Broken Antennas
-
-When an antenna reaches:
-
-```text
-Health <= 0
-```
-
-it becomes broken.
-
-Broken antennas do not provide active radio coverage.
-
-A broken antenna must be repaired before returning to active operation.
 
 ---
 
 # Repair
 
-Broken antennas can be repaired using:
+A completely broken antenna can be repaired using:
 
 ```text
 radio_repair_kit
 ```
 
-The amount repaired is configured through:
-
-```lua
-Config.Antenna.repair.health
-```
-
-Default:
-
-```lua
-health = 35.0
-```
-
 The repair system includes:
 
-* Progress duration.
-* Animation.
-* Server-side item validation.
-* Server-side distance validation.
-* Server-side antenna state validation.
-
-Default repair key:
-
-```text
-E
-```
+* Progress handling
+* Animation
+* Distance validation
+* Item validation
+* Server-side validation
 
 ---
 
 # Maintenance
 
-Antennas can receive maintenance before becoming completely broken.
-
-Maintenance uses:
+Damaged antennas can be maintained using:
 
 ```text
 radio_maintenance_kit
 ```
 
-The amount restored is configured through:
-
-```lua
-Config.Antenna.maintenance.health
-```
-
-Default:
-
-```lua
-health = 15.0
-```
-
-Default maintenance key:
-
-```text
-G
-```
+Maintenance restores antenna health without requiring the antenna to become completely broken first.
 
 ---
 
-# Antenna Interaction
+# Antenna Removal
 
-The current version uses direct proximity interaction.
+Player-owned antennas can be removed.
+
+The server validates:
+
+* Ownership
+* Antenna existence
+* Player distance
+* Antenna type
+
+When enabled, the resource can return the antenna kit after removal.
+
+The return system uses a configurable probability.
+
+Default:
+
+```text
+75%
+```
+
+This means the player has a 75% chance of recovering the `radio_antenna` item.
+
+---
+
+# Inventory Integration
+
+CB Local Radio does not directly depend on a specific inventory implementation.
+
+Inventory operations are abstracted through HateBridge.
+
+This allows the resource to work with different inventory systems without adding direct inventory exports throughout the resource.
+
+The resource should not be modified to add direct calls such as:
+
+```lua
+exports.ox_inventory
+```
+
+unless the integration architecture is intentionally changed.
+
+---
+
+# Framework Integration
+
+Framework-specific functionality is handled through HateBridge.
+
+CB Local Radio itself does not directly implement framework-specific gameplay logic.
+
+This keeps the resource separated from:
+
+* ESX
+* QBCore
+* Other supported HateBridge environments
+
+---
+
+# Interaction System
+
+CB Local Radio uses direct proximity interaction.
 
 It does not require:
 
@@ -869,206 +584,13 @@ qb-target
 qtarget
 ```
 
-The default interaction keys are:
-
-| Key | Action               |
-| --- | -------------------- |
-| E   | Repair               |
-| G   | Maintenance          |
-| H   | Remove owned antenna |
-
-The available action depends on the antenna state and player ownership.
-
----
-
-# Progress System
-
-CB Local Radio uses HateBridge for progress handling.
-
-Depending on the server environment, the bridge can use supported progress systems.
-
-The resource also contains a fallback progress implementation.
-
-The fallback supports:
-
-* Progress percentage.
-* Animation.
-* Movement restrictions.
-* Combat restrictions.
-* Action cancellation.
-
-Default cancellation key:
-
-```text
-X
-```
-
----
-
-# Antenna Networks
-
-Antennas automatically form radio networks according to:
-
-```lua
-Config.Network.linkDistance
-```
-
-Default:
-
-```lua
-linkDistance = 1200.0
-```
-
-Antennas inside the configured connection distance can become part of the same network.
-
----
-
-# Network Chaining
-
-Chaining is controlled by:
-
-```lua
-Config.Network.allowChaining
-```
-
-Default:
-
-```lua
-allowChaining = true
-```
-
-With chaining enabled:
-
-```text
-A <----> B <----> C
-```
-
-can operate as a connected network.
-
-This allows antenna infrastructure to extend radio coverage across multiple connected antenna nodes.
-
----
-
-# Network Refresh
-
-Network refresh interval:
-
-```lua
-Config.Network.refreshSeconds
-```
-
-Default:
-
-```lua
-refreshSeconds = 5
-```
-
-Player signal check interval:
-
-```lua
-Config.Network.playerCheckSeconds
-```
-
-Default:
-
-```lua
-playerCheckSeconds = 2
-```
-
----
-
-# Physical Coverage
-
-Radio signal is determined by the player's physical position relative to active antenna coverage.
-
-The system checks the player's position against active antenna coverage.
-
-Conceptually:
-
-```text
-              ANTENNA A
-             /         \
-            /           \
-        PLAYER         ANTENNA B
-            \           /
-             \         /
-              NETWORK
-```
-
-Inside coverage:
-
-```text
-SIGNAL: ACTIVE
-```
-
-Outside coverage:
-
-```text
-SIGNAL: LOST
-```
-
-If configured, the player is automatically removed from the radio channel.
-
----
-
-# Blips
-
-Blips can be enabled through:
-
-```lua
-Config.Blips.enabled
-```
-
-World antenna blips:
-
-```lua
-Config.Blips.showWorldAntennas
-```
-
-Player antenna blips:
-
-```lua
-Config.Blips.showPlayerAntennas
-```
-
-Default colors:
-
-```lua
-colors = {
-    active = 2,
-    maintenance = 17,
-    broken = 1,
-    offline = 40
-}
-```
-
----
-
-# Coverage Radius
-
-Coverage visualization can be enabled through:
-
-```lua
-Config.Radius.enabled
-```
-
-Maximum visualization distance:
-
-```lua
-Config.Radius.drawDistance
-```
-
-Coverage visualization supports:
-
-* Active antennas.
-* Maintenance antennas.
-* Broken antennas.
+Players interact with antennas based on their distance and the current antenna state.
 
 ---
 
 # NUI
 
-CB Local Radio includes a custom NUI.
+CB Local Radio includes a custom radio interface.
 
 Files:
 
@@ -1079,100 +601,154 @@ web/
 └── app.js
 ```
 
-The NUI handles:
+The interface provides:
 
-* Radio interface.
-* Frequency input.
-* Signal state.
-* Radio state.
-* Volume control.
-* Channel joining.
-* Channel leaving.
-
-CB Local Radio does not use the `qb-radio` NUI.
-
----
-
-# Commands
-
-## Open Radio
-
-```text
-/localradio
-```
-
-The command can be changed through:
-
-```lua
-Config.Radio.command
-```
-
----
-
-# Default Controls
-
-| Action               | Key      |
-| -------------------- | -------- |
-| Open radio           | F7       |
-| Radio transmission   | Left ALT |
-| Cancel progress      | X        |
-| Repair antenna       | E        |
-| Maintain antenna     | G        |
-| Remove owned antenna | H        |
-
-Radio transmission is controlled by PMA-Voice.
+* Current frequency
+* Signal status
+* Radio state
+* Frequency selection
+* Volume control
+* Channel connection
+* Channel disconnection
 
 ---
 
 # Database
 
-CB Local Radio uses:
+CB Local Radio uses `oxmysql` for persistent antenna storage.
+
+Table:
 
 ```text
-oxmysql
+cb_localradio_antennas
 ```
 
-for persistent antenna data.
+Persistent information includes antenna data such as:
 
-Database operations are performed server-side.
+* Identifier
+* Type
+* Owner
+* Model
+* Coordinates
+* Heading
+* Radius
+* Health
+* State
+* Maintenance information
+* Degradation information
 
-The client does not directly access the database.
-
-The database stores antenna information including:
-
-* Antenna ID.
-* Type.
-* Owner.
-* Model.
-* Coordinates.
-* Heading.
-* Radius.
-* Health.
-* State.
-* Maintenance timestamps.
-* Degradation timestamps.
+The database is accessed server-side.
 
 ---
 
-# Server-Side Validation
+# Blips
 
-Important gameplay operations are validated on the server.
+Antenna blips can be enabled through:
 
-This includes:
+```text
+Config.Blips
+```
 
-* Antenna placement.
-* Minimum antenna distance.
-* Item requirements.
-* Item removal.
-* Item return.
-* Antenna ownership.
-* Repair.
-* Maintenance.
-* Antenna distance.
-* Antenna state.
-* Network synchronization.
+The resource supports separate visibility for:
 
-Client-side values are not authoritative.
+* World antennas
+* Player antennas
+
+Blip colors can represent antenna states such as:
+
+```text
+Active
+Maintenance
+Broken
+Offline
+```
+
+---
+
+# Coverage Visualization
+
+Optional antenna coverage visualization is available through:
+
+```text
+Config.Radius
+```
+
+It is disabled by default.
+
+When enabled, the system can visualize the approximate coverage radius of antennas.
+
+---
+
+# Configuration
+
+The main configuration file is:
+
+```text
+config.lua
+```
+
+### Radio
+
+Controls:
+
+* Enable/disable radio
+* Command
+* Open key
+* Minimum frequency
+* Maximum frequency
+* Default volume
+* Signal requirement
+* Automatic channel removal outside coverage
+* Physical coverage
+
+### Antenna
+
+Controls:
+
+* Default radius
+* Minimum distance
+* Health degradation
+* Player antenna model
+* Interaction distance
+* Construction
+* Repair
+* Maintenance
+
+### Network
+
+Controls:
+
+* Link distance
+* Network chaining
+* Network refresh
+* Player signal checks
+
+### Blips
+
+Controls:
+
+* Blip visibility
+* World antenna visibility
+* Player antenna visibility
+* Blip appearance
+* State colors
+
+### Radius
+
+Controls:
+
+* Coverage visualization
+* Draw distance
+* Visualization colors
+
+### World Antennas
+
+Controls:
+
+* Antenna model
+* Position
+* Heading
+* Coverage radius
 
 ---
 
@@ -1182,515 +758,207 @@ Client-side values are not authoritative.
 cb_localradio/
 │
 ├── fxmanifest.lua
-├── README.md
 ├── config.lua
+├── README.md
+│
+├── INSTALL_FILES/
+│   ├── core_inventory_items.lua
+│   ├── ox_inventory_items.lua
+│   │
+│   ├── inventory_icon/
+│   │   ├── electronic_parts.png
+│   │   ├── radio.png
+│   │   ├── radio_antenna.png
+│   │   ├── radio_cable.png
+│   │   ├── radio_maintenance_kit.png
+│   │   ├── radio_repair_kit.png
+│   │   └── scrap_metal.png
+│   │
+│   └── sql/
+│       └── install.sql
 │
 ├── client/
+│   ├── antennas.lua
 │   ├── bridge.lua
 │   ├── main.lua
-│   ├── antennas.lua
-│   ├── radio.lua
-│   └── placement.lua
+│   ├── placement.lua
+│   └── radio.lua
 │
 ├── server/
+│   ├── antennas.lua
 │   ├── bridge.lua
-│   ├── main.lua
-│   └── antennas.lua
+│   └── main.lua
 │
 ├── shared/
 │   └── utils.lua
 │
 └── web/
+    ├── app.js
     ├── index.html
-    ├── style.css
-    └── app.js
-```
-
----
-
-# Configuration Reference
-
-## Debug
-
-```lua
-Config.Debug = false
-```
-
----
-
-## Items
-
-```lua
-Config.Items = {
-    radio = 'radio',
-    antennaKit = 'radio_antenna',
-    repairKit = 'radio_repair_kit',
-    maintenanceKit = 'radio_maintenance_kit',
-    cable = 'radio_cable',
-    metal = 'scrap_metal',
-    electronics = 'electronic_parts'
-}
-```
-
----
-
-## Antenna
-
-```lua
-Config.Antenna = {
-    defaultRadius = 1000.0,
-    minimumDistance = 500.0,
-
-    degradation = {
-        enabled = true,
-        intervalMinutes = 60,
-        amount = 5.0,
-        minimumHealthBeforeMaintenance = 95.0
-    },
-
-    playerModel = 'prop_aerial_01a',
-
-    brokenAt = 0.0,
-    maintenanceAt = 60.0,
-    interactionDistance = 3.0
-}
-```
-
----
-
-## Construction
-
-```lua
-Config.Antenna.construction = {
-    duration = 15000,
-    itemReturnOnRemove = true,
-    returnPercent = 75
-}
-```
-
----
-
-## Repair
-
-```lua
-Config.Antenna.repair = {
-    duration = 10000,
-    health = 35.0
-}
-```
-
----
-
-## Maintenance
-
-```lua
-Config.Antenna.maintenance = {
-    duration = 6000,
-    health = 15.0
-}
-```
-
----
-
-## Network
-
-```lua
-Config.Network = {
-    linkDistance = 1200.0,
-    allowChaining = true,
-    refreshSeconds = 5,
-    playerCheckSeconds = 2
-}
-```
-
----
-
-## Radio
-
-```lua
-Config.Radio = {
-    enabled = true,
-    command = 'localradio',
-    key = 'F7',
-    minFrequency = 1,
-    maxFrequency = 500,
-    defaultVolume = 50,
-    requireSignal = true,
-    leaveWhenOutOfCoverage = true,
-    usePhysicalCoverage = true
-}
+    └── style.css
 ```
 
 ---
 
 # Troubleshooting
 
-## Resource Does Not Start
+## Radio Does Not Open
 
 Check:
 
-```text
-fxmanifest.lua
-```
-
-Verify:
-
-* `oxmysql` is running.
-* `hate-bridge` is running.
-* `pma-voice` is running.
-* Dependencies start before `cb_localradio`.
-* No dependency errors appear in the server console.
-
----
-
-# Radio Does Not Open
-
-Check:
-
-* Player owns the `radio` item.
-* `Config.Items.radio` matches the inventory item.
+* The `radio` item exists in your inventory.
+* `Config.Items.radio` matches the registered item name.
 * HateBridge is running.
-* `Config.Radio.enabled` is `true`.
+* `Config.Radio.enabled` is enabled.
 * `/localradio` works.
-* F7 is not being blocked by another resource.
+* F7 is not being used by another resource.
 
 ---
 
-# Radio Says "No Signal"
+## No Radio Signal
 
 Check:
 
 * Player position.
-* Antenna coverage.
-* Antenna state.
+* Active antenna coverage.
 * Antenna health.
-* Network linking.
-* `Config.Network.linkDistance`.
-* `Config.Radio.requireSignal`.
-* `Config.Radio.usePhysicalCoverage`.
+* Antenna state.
+* Network links.
+* Network link distance.
+* Network chaining.
+* Physical coverage settings.
 
 ---
 
-# Radio Does Not Transmit
+## Radio Does Not Transmit
 
 Check:
 
 * PMA-Voice is running.
-* Radio support is enabled.
-* The player has joined a radio frequency.
+* Radio support is enabled in PMA-Voice.
+* The player is connected to a frequency.
+* The player has active signal.
 * No other resource is overriding the PMA-Voice radio channel.
-* `voice_defaultRadio` is configured correctly.
-
-Recommended:
-
-```cfg
-setr voice_enableRadios 1
-setr voice_defaultRadio "LMENU"
-```
-
-Hold:
-
-```text
-LEFT ALT
-```
-
-while connected to a radio channel.
+* The configured PMA-Voice radio key is correct.
 
 ---
 
-# Radio Animation Does Not Play
-
-Check:
-
-```cfg
-setr voice_enableRadioAnim 1
-```
-
-The radio animation is handled by PMA-Voice.
-
----
-
-# Radio Audio Effects Do Not Work
-
-Check:
-
-```cfg
-setr voice_useNativeAudio true
-setr voice_enableSubmix 1
-```
-
-These settings allow PMA-Voice audio/submix functionality to operate.
-
----
-
-# Antenna Cannot Be Placed
+## Antenna Cannot Be Built
 
 Check:
 
 * Player owns `radio_antenna`.
-* Item name is correct.
-* Player is not too close to another antenna.
 * HateBridge is running.
-* Placement system is running.
-* Server-side validation is not rejecting the placement.
+* Player is not inside the minimum antenna distance.
+* Placement is not being cancelled.
+* Server-side validation is not rejecting the installation.
 
 ---
 
-# Antenna Does Not Provide Signal
+## Antenna Cannot Be Repaired
 
 Check:
 
-* Antenna health.
-* Antenna state.
-* Network connection.
-* `Config.Network.linkDistance`.
-* `Config.Network.allowChaining`.
-* Network refresh interval.
-* Player position.
-* World antenna configuration.
-
----
-
-# Repair Does Not Work
-
-For a broken antenna, check:
-
-```text
-radio_repair_kit
-```
-
-For a damaged but non-broken antenna, check:
-
-```text
-radio_maintenance_kit
-```
-
-Also verify:
-
+* The antenna is actually broken.
+* Player owns `radio_repair_kit`.
 * Player is close enough.
-* Antenna exists.
-* Antenna is in a valid state.
-* Player owns the required item.
-* HateBridge is correctly connected to the inventory.
+* HateBridge is running.
+* The antenna exists in the database.
 
 ---
 
-# Maintenance Does Not Work
+## Antenna Cannot Be Maintained
 
 Check:
 
-```text
-radio_maintenance_kit
-```
-
-Also verify:
-
+* The antenna is below the maintenance threshold.
+* Player owns `radio_maintenance_kit`.
 * Player is close enough.
-* Antenna health is below the configured maintenance threshold.
-* Player has the required item.
 * HateBridge is running.
 
 ---
 
-# NUI Does Not Open
+## Antennas Are Not Linking
 
 Check:
 
-```text
-web/index.html
-web/style.css
-web/app.js
-```
+* `Config.Network.linkDistance`
+* `Config.Network.allowChaining`
+* Antenna state
+* Antenna health
+* Network refresh interval
 
-Verify `fxmanifest.lua` contains:
-
-```lua
-ui_page 'web/index.html'
-
-files {
-    'web/index.html',
-    'web/style.css',
-    'web/app.js'
-}
-```
-
-Check the FiveM client console for NUI errors.
+Remember that broken antennas do not provide active coverage.
 
 ---
 
-# Updating
+## Database Errors
 
-Before updating CB Local Radio:
+Check:
 
-1. Stop the resource.
-2. Back up the current resource.
-3. Replace the resource files.
-4. Compare the new `config.lua` with your existing configuration.
-5. Verify item names.
-6. Verify HateBridge configuration.
-7. Verify PMA-Voice configuration.
-8. Start the resource again.
-
-Do not overwrite a customized configuration without checking your existing settings.
+* `oxmysql` is started.
+* `INSTALL_FILES/sql/install.sql` was imported.
+* The database connection is working.
+* The `cb_localradio_antennas` table exists.
 
 ---
 
-# Compatibility Notes
-
-CB Local Radio is designed to remain independent from a specific framework or inventory implementation.
-
-The resource communicates with the framework/inventory layer through:
+# Recommended Installation Checklist
 
 ```text
-HateBridge
-```
+[ ] oxmysql installed
+[ ] pma-voice installed
+[ ] hate-bridge installed
+[ ] cb_localradio installed
 
-Official repository:
+[ ] SQL imported
+[ ] Radio item registered
+[ ] Antenna item registered
+[ ] Repair kit registered
+[ ] Maintenance kit registered
+[ ] Inventory icons installed
 
-```text
-https://github.com/HATE-dev/hate-bridge
-```
+[ ] PMA-Voice radio enabled
+[ ] PMA-Voice PTT configured
+[ ] CB Local Radio started
 
-Official documentation:
-
-```text
-https://hate-development.gitbook.io/hate-development-docs/hate-framework-bridge
-```
-
-Do not add direct inventory calls such as:
-
-```lua
-exports.ox_inventory
-```
-
-directly into CB Local Radio.
-
-Inventory-specific functionality should remain inside HateBridge.
-
----
-
-# PMA-Voice Responsibilities
-
-## CB Local Radio
-
-Handles:
-
-```text
-Physical radio item
-Frequency
-Signal
-Coverage
-Antenna network
-Radio channel assignment
-Radio volume
-NUI
-```
-
-## PMA-Voice
-
-Handles:
-
-```text
-Voice transport
-Radio push-to-talk
-Radio animation
-Radio audio
-Radio submix
-Radio transmission
-```
-
-This separation prevents both systems from competing for the same radio controls.
-
----
-
-# HateBridge Responsibilities
-
-HateBridge provides the abstraction used by CB Local Radio for:
-
-```text
-Framework detection
-Inventory abstraction
-Item checks
-Item removal
-Item addition
-Usable item registration
-Notifications
-Progress handling
-```
-
-Official repository:
-
-```text
-https://github.com/HATE-dev/hate-bridge
-```
-
-Official documentation:
-
-```text
-https://hate-development.gitbook.io/hate-development-docs/hate-framework-bridge
-```
-
----
-
-# Recommended Server Configuration
-
-```cfg
-ensure oxmysql
-ensure ox_lib
-
-ensure pma-voice
-ensure hate-bridge
-ensure cb_localradio
-```
-
-Recommended PMA-Voice settings:
-
-```cfg
-setr voice_useNativeAudio true
-setr voice_defaultCycle "GRAVE"
-setr voice_defaultVolume 0.3
-setr voice_enableRadios 1
-setr voice_enableRadioAnim 1
-setr voice_enableSubmix 1
-setr voice_enableCalls 0
-setr voice_defaultRadio "LMENU"
-setr voice_onClickVolume 10
-setr voice_offClickVolume 3
-setr voice_syncData 1
-setr voice_useSendingRangeOnly false
-set mumble_allowExternalConnections true
-```
-
----
-
-# Testing Checklist
-
-After installation, verify:
-
-```text
-[ ] HateBridge starts successfully
-[ ] oxmysql starts successfully
-[ ] pma-voice starts successfully
-[ ] cb_localradio starts successfully
-[ ] Player owns the radio item
-[ ] F7 opens the radio
-[ ] /localradio opens the radio
+[ ] Radio opens
 [ ] Frequency can be selected
-[ ] Antenna provides signal
-[ ] Radio channel is assigned
-[ ] Left ALT transmits
-[ ] Radio animation works
-[ ] Radio volume changes
-[ ] Leaving coverage removes signal
-[ ] Antenna can be constructed
-[ ] Antenna can be repaired
-[ ] Antenna can be maintained
-[ ] Owner can remove an antenna
-[ ] Antenna return probability works
-[ ] Antenna networks link correctly
-[ ] Chained networks work
-[ ] World antennas provide coverage
+[ ] Signal works
+[ ] Radio transmission works
+
+[ ] Antenna can be built
+[ ] Antenna coverage works
+[ ] Antenna networks work
+[ ] Repair works
+[ ] Maintenance works
+[ ] Antenna removal works
+[ ] Database persistence works
 ```
+
+---
+
+# Credits
+
+## CB Studios
+
+CB Local Radio is developed and maintained by **CB Studios**.
+
+### External Dependencies
+
+**HateBridge**
+
+https://github.com/HATE-dev/hate-bridge
+
+**PMA-Voice**
+
+https://github.com/AvarianKnight/pma-voice
+
+**oxmysql**
+
+https://github.com/overextended/oxmysql
+
+Each external dependency remains subject to its respective license and terms.
 
 ---
 
@@ -1699,80 +967,34 @@ After installation, verify:
 When reporting an issue, provide:
 
 ```text
-Resource:
-CB Local Radio
-
-Version:
-1.0.0
-
-FiveM Server Build:
-
+CB Local Radio version:
+FiveM server build:
 Framework:
-
 Inventory:
+HateBridge version:
+PMA-Voice version:
+oxmysql version:
 
-HateBridge Version:
-
-pma-voice Version:
-
-oxmysql Version:
-
-Server Console Error:
-
-Client Console Error:
+Server console error:
+Client console error:
 
 Description:
 ```
 
-Complete console errors and screenshots are recommended.
+Always provide the complete error message when possible.
 
 ---
 
-# Credits
-
-**CB Studios**
-
-CB Local Radio integrates external dependencies including:
-
-* HateBridge
-* oxmysql
-* pma-voice
-
-HateBridge:
-
-https://github.com/HATE-dev/hate-bridge
-
-Each external dependency remains subject to its own license and terms.
-
----
-
-# Links
-
-## CB Studios
+# CB Studios
 
 **Store**
-
 https://pichirin-cb.tebex.io/
 
 **Documentation**
-
 https://docs.pichirincb.com/
 
 **Discord**
-
 https://discord.gg/hsx6AvBg5s
-
----
-
-## HateBridge
-
-**GitHub Repository**
-
-https://github.com/HATE-dev/hate-bridge
-
-**Documentation**
-
-https://hate-development.gitbook.io/hate-development-docs/hate-framework-bridge
 
 ---
 
@@ -1780,14 +1002,8 @@ https://hate-development.gitbook.io/hate-development-docs/hate-framework-bridge
 
 CB Local Radio is released under the MIT License.
 
-See:
-
-```text
-LICENSE
-```
-
-for the complete license text.
+See the `LICENSE` file included with the resource for the complete license text.
 
 ---
 
-**CB Studios — Local infrastructure for survival servers.**
+**CB Studios — Build the network. Keep the signal alive.**
