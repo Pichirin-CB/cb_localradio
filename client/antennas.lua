@@ -20,6 +20,29 @@ local function normalizeId(id)
     return tostring(id)
 end
 
+local function getLocale()
+    local locale = Config.Locales
+        and Config.Locales[Config.Locale]
+
+    if locale then
+        return locale
+    end
+
+    return Config.Locales
+        and Config.Locales.en
+        or {}
+end
+
+local function localeText(key, fallback)
+    local locale = getLocale()
+
+    if locale[key] ~= nil then
+        return tostring(locale[key])
+    end
+
+    return fallback or key
+end
+
 local function colorForState(state)
     if state == 'active' then
         return Config.Blips.colors.active
@@ -38,39 +61,44 @@ end
 
 local function labelForState(state)
     if state == 'active' then
-        return 'ACTIVA'
+        return localeText(
+            'antenna_active',
+            'ACTIVE'
+        )
     end
 
     if state == 'maintenance' then
-        return 'MANTENIMIENTO'
+        return localeText(
+            'antenna_maintenance_state',
+            'MAINTENANCE'
+        )
     end
 
     if state == 'broken' then
-        return 'ROTA'
+        return localeText(
+            'antenna_broken_state',
+            'BROKEN'
+        )
     end
 
-    return 'FUERA DE SERVICIO'
+    return localeText(
+        'antenna_network_offline',
+        'OFFLINE'
+    )
 end
 
 local function typeLabel(antenna)
     if antenna.type == 'world' then
-        return 'FIJA'
+        return localeText(
+            'antenna_world',
+            'FIXED'
+        )
     end
 
-    return 'PROPIA'
-end
-
-local function getLocale()
-    local locale = Config.Locales
-        and Config.Locales[Config.Locale]
-
-    if locale then
-        return locale
-    end
-
-    return Config.Locales
-        and Config.Locales.en
-        or {}
+    return localeText(
+        'antenna_player',
+        'PERSONAL'
+    )
 end
 
 local function getAntennaById(id)
@@ -151,8 +179,11 @@ local function createBlip(antenna)
         BeginTextCommandSetBlipName('STRING')
 
         AddTextComponentString(
-            ('Antena de radio - %s'):format(
-                labelForState(antenna.state)
+            localeText(
+                'antenna_blip_name',
+                'Radio Antenna'
+            ) .. ' - ' .. labelForState(
+                antenna.state
             )
         )
 
@@ -476,13 +507,23 @@ local function startAntennaOperation(
 
     if operation == 'repair' then
         duration = Config.Antenna.repair.duration
-        label = 'Reparando antena...'
+
+        label = localeText(
+            'antenna_repair_progress',
+            'Repairing antenna...'
+        )
+
         animation = Config.Antenna.repair.animation
         eventName = 'cb_localradio:server:repair'
 
     elseif operation == 'maintenance' then
         duration = Config.Antenna.maintenance.duration
-        label = 'Realizando mantenimiento...'
+
+        label = localeText(
+            'antenna_maintenance_progress',
+            'Performing maintenance...'
+        )
+
         animation = Config.Antenna.maintenance.animation
         eventName = 'cb_localradio:server:maintain'
 
@@ -945,8 +986,12 @@ local function drawAntennaStatus(
     )
 
     local status = (
-        'ANTENA %s | %d%% | %s'
+        '%s %s | %d%% | %s'
     ):format(
+        localeText(
+            'antenna_label',
+            'ANTENNA'
+        ),
         typeLabel(antenna),
         health,
         labelForState(
@@ -977,7 +1022,10 @@ local function drawAntennaInteraction(
             antenna.y,
             antenna.z + 1.45
         ),
-        '[E] INTERACTUAR'
+        localeText(
+            'antenna_interact',
+            '[E] INTERACT'
+        )
     )
 end
 
@@ -1095,6 +1143,7 @@ CreateThread(function()
 
                         color =
                             Config.Radius.color.maintenance
+
                     elseif antenna.state ==
                         'broken' then
 
