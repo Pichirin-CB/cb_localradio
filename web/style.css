@@ -3025,3 +3025,41 @@ button {
 .device.dragging {
     transition: none !important;
 }
+
+/* ==================================================
+   ANTENNA WINDOW DRAG
+================================================== */
+
+.antenna-header {
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
+    touch-action: none;
+}
+
+.antenna-header.dragging {
+    cursor: grabbing;
+}
+
+.antenna-terminal.dragging {
+    user-select: none;
+    -webkit-user-select: none;
+    transition: none !important;
+}
+
+.antenna-terminal.dragging * {
+    transition: none !important;
+}
+
+.antenna-header button,
+.antenna-header input,
+.antenna-header a {
+    cursor: pointer;
+    touch-action: auto;
+}
+
+.antenna-header,
+.antenna-header * {
+    -webkit-user-drag: none;
+}
