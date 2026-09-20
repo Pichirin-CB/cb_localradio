@@ -9,6 +9,7 @@ AntennaClient = {
 }
 
 local interactionActive = false
+local operationRequestPending = false
 local pendingOperation = nil
 
 local function normalizeId(id)
@@ -276,6 +277,7 @@ local function closeAntennaUI()
     AntennaClient.selectedId = nil
 
     interactionActive = false
+    operationRequestPending = false
     pendingOperation = nil
 
     SetNuiFocus(
@@ -305,6 +307,7 @@ local function openAntennaUI(antenna)
     AntennaClient.selectedId = id
 
     interactionActive = false
+    operationRequestPending = false
     pendingOperation = nil
 
     AntennaClient.byId[id] = antenna
@@ -386,6 +389,7 @@ end
 
 local function requestAntennaTerminal()
     if interactionActive
+        or operationRequestPending
         or pendingOperation then
 
         return
@@ -436,9 +440,7 @@ local function startAntennaOperation(
     operation,
     antenna
 )
-    if interactionActive
-        or pendingOperation then
-
+    if interactionActive then
         return
     end
 
@@ -462,6 +464,7 @@ local function startAntennaOperation(
         )
 
         interactionActive = false
+        pendingOperation = nil
 
         return
     end
@@ -504,11 +507,14 @@ local function startAntennaOperation(
             )
 
             interactionActive = false
+            pendingOperation = nil
+            operationRequestPending = false
         end,
 
         function()
             interactionActive = false
             pendingOperation = nil
+            operationRequestPending = false
         end
     )
 end
@@ -540,6 +546,7 @@ RegisterNetEvent(
         setAntenna(antenna)
 
         pendingOperation = nil
+        operationRequestPending = false
         interactionActive = false
 
         refreshAntennaUI()
@@ -562,10 +569,14 @@ RegisterNetEvent(
             or not antenna.id then
 
             interactionActive = false
+            operationRequestPending = false
             pendingOperation = nil
 
             return
         end
+
+        operationRequestPending = false
+        pendingOperation = operation
 
         local currentAntenna = getAntennaById(
             antenna.id
@@ -633,6 +644,7 @@ RegisterNUICallback(
         end
 
         if interactionActive
+            or operationRequestPending
             or pendingOperation then
 
             cb({
@@ -652,7 +664,7 @@ RegisterNUICallback(
             return
         end
 
-        pendingOperation = 'repair'
+        operationRequestPending = true
 
         TriggerServerEvent(
             'cb_localradio:server:requestAntennaOperation',
@@ -681,6 +693,7 @@ RegisterNUICallback(
         end
 
         if interactionActive
+            or operationRequestPending
             or pendingOperation then
 
             cb({
@@ -700,7 +713,7 @@ RegisterNUICallback(
             return
         end
 
-        pendingOperation = 'maintenance'
+        operationRequestPending = true
 
         TriggerServerEvent(
             'cb_localradio:server:requestAntennaOperation',
@@ -729,6 +742,7 @@ RegisterNUICallback(
         end
 
         if interactionActive
+            or operationRequestPending
             or pendingOperation then
 
             cb({
@@ -748,7 +762,7 @@ RegisterNUICallback(
             return
         end
 
-        pendingOperation = 'remove'
+        operationRequestPending = true
 
         TriggerServerEvent(
             'cb_localradio:server:requestAntennaOperation',
@@ -971,6 +985,7 @@ local function handleAntennaInteraction(
     antenna
 )
     if interactionActive
+        or operationRequestPending
         or pendingOperation then
 
         return
