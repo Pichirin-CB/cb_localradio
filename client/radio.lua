@@ -1,10 +1,30 @@
 Radio = {
     open = false,
     on = false,
+
+    -- Frecuencia actualmente utilizada.
     frequency = 0,
+
+    -- Volumen de pma-voice.
     volume = Config.Radio.defaultVolume,
+
+    -- Estado de cobertura.
     hasSignal = false,
-    signalNetwork = nil
+    signalNetwork = nil,
+
+    -- ========================================================
+    -- RECONEXIÓN AUTOMÁTICA
+    -- ========================================================
+    --
+    -- Cuando el jugador pierde cobertura NO borramos frequency.
+    --
+    -- reconnectPending = true significa:
+    --
+    -- "El jugador estaba conectado a esta frecuencia,
+    -- perdió cobertura y debe volver a conectarse
+    -- automáticamente cuando recupere señal."
+    --
+    reconnectPending = false
 }
 
 -- ============================================================
@@ -550,14 +570,31 @@ local function setPmaChannel(channel)
     return true
 end
 
-local function leaveChannel(silent)
+-- ============================================================
+-- DESCONEXIÓN MANUAL
+-- ============================================================
+--
+-- Esta función SI borra la frecuencia.
+--
+-- Solo debe utilizarse cuando:
+--
+-- 1. El jugador pulsa DESCONECTAR.
+-- 2. El jugador pierde la radio.
+-- 3. El jugador muere.
+-- 4. El recurso necesita limpiar completamente el estado.
+--
+-- NO debe utilizarse al perder cobertura.
+-- ============================================================
 
+local function leaveChannel(silent)
     if pma() then
         exports['pma-voice']:setRadioChannel(0)
     end
 
     Radio.frequency = 0
     Radio.on = false
+
+    Radio.reconnectPending = false
 
     SendNUIMessage({
         action = 'state',
@@ -578,6 +615,145 @@ local function leaveChannel(silent)
         )
     end
 end
+
+-- ============================================================
+-- DESCONEXIÓN TEMPORAL POR COBERTURA
+-- ============================================================
+--
+-- IMPORTANTE:
+--
+-- NO borra Radio.frequency.
+--
+-- Ejemplo:
+--
+-- Jugador conectado a 125
+--       ↓
+-- sale de cobertura
+--       ↓
+-- PMA channel = 0
+-- Radio.frequency = 125
+-- reconnectPending = true
+--       ↓
+-- vuelve a cobertura
+--       ↓
+-- PMA channel = 125
+--
+-- El jugador nunca tiene que volver a introducir la frecuencia.
+-- ============================================================
+
+local function suspendChannelForCoverage()
+    if not Radio.on then
+        return
+    end
+
+    if Radio.frequency <= 0 then
+        return
+    end
+
+    if pma() then
+        exports['pma-voice']:setRadioChannel(0)
+    end
+
+    Radio.on = false
+    Radio.reconnectPending = true
+
+    SendNUIMessage({
+        action = 'state',
+
+        frequency = Radio.frequency,
+
+        signal = false,
+        on = false,
+
+        volume = Radio.volume
+    })
+
+    Bridge.Notify(
+        RadioUtils.locale(
+            'out_of_coverage'
+        ),
+        'error'
+    )
+end
+
+-- ============================================================
+-- RECONEXIÓN AUTOMÁTICA
+-- ============================================================
+
+local function reconnectChannel()
+    if not Radio.reconnectPending then
+        return false
+    end
+
+    if Radio.frequency <= 0 then
+        Radio.reconnectPending = false
+        return false
+    end
+
+    if not Radio.hasSignal then
+        return false
+    end
+
+    if not pma() then
+        return false
+    end
+
+    if not Bridge.HasItem(
+        Config.Items.radio,
+        1
+    ) then
+
+        leaveChannel(true)
+
+        return false
+    end
+
+    if IsEntityDead(
+        PlayerPedId()
+    ) then
+
+        leaveChannel(true)
+
+        return false
+    end
+
+    local frequency = Radio.frequency
+
+    if not setPmaChannel(
+        frequency
+    ) then
+
+        return false
+    end
+
+    Radio.on = true
+    Radio.reconnectPending = false
+
+    SendNUIMessage({
+        action = 'state',
+
+        frequency = frequency,
+
+        signal = true,
+        on = true,
+
+        volume = Radio.volume
+    })
+
+    Bridge.Notify(
+        RadioUtils.locale(
+            'joined',
+            frequency
+        ),
+        'success'
+    )
+
+    return true
+end
+
+-- ============================================================
+-- JOIN CHANNEL
+-- ============================================================
 
 local function joinChannel(channel)
 
@@ -627,6 +803,8 @@ local function joinChannel(channel)
 
         Radio.frequency = channel
         Radio.on = true
+
+        Radio.reconnectPending = false
 
         SendNUIMessage({
             action = 'state',
@@ -712,18 +890,32 @@ local function updateSignal()
         })
     end
 
+    -- ========================================================
+    -- SALIDA DE COBERTURA
+    -- ========================================================
+
     if Radio.on
         and Config.Radio.leaveWhenOutOfCoverage
         and not found then
 
-        leaveChannel(true)
+        suspendChannelForCoverage()
 
-        Bridge.Notify(
-            RadioUtils.locale(
-                'out_of_coverage'
-            ),
-            'error'
-        )
+        return
+    end
+
+    -- ========================================================
+    -- REGRESO A COBERTURA
+    -- ========================================================
+    --
+    -- Si anteriormente perdimos señal mientras estábamos
+    -- conectados, recuperamos automáticamente la frecuencia.
+    -- ========================================================
+
+    if found
+        and Radio.reconnectPending
+        and not Radio.on then
+
+        reconnectChannel()
     end
 end
 
@@ -944,6 +1136,10 @@ CreateThread(function()
 
         local ped = PlayerPedId()
 
+        -- ======================================================
+        -- RADIO CONECTADA
+        -- ======================================================
+
         if Radio.on then
 
             if not Bridge.HasItem(
@@ -956,6 +1152,8 @@ CreateThread(function()
                 if Radio.open then
                     closeUI()
                 end
+
+                goto continue
             end
 
             if IsEntityDead(ped) then
@@ -965,8 +1163,52 @@ CreateThread(function()
                 if Radio.open then
                     closeUI()
                 end
+
+                goto continue
             end
         end
+
+        -- ======================================================
+        -- RECONEXIÓN PENDIENTE
+        -- ======================================================
+        --
+        -- Si perdimos cobertura mantenemos la frecuencia.
+        --
+        -- Si durante ese tiempo el jugador pierde la radio
+        -- o muere, cancelamos la reconexión.
+        -- ======================================================
+
+        if Radio.reconnectPending then
+
+            if not Bridge.HasItem(
+                Config.Items.radio,
+                1
+            ) then
+
+                leaveChannel(true)
+
+                if Radio.open then
+                    closeUI()
+                end
+
+                goto continue
+            end
+
+            if IsEntityDead(ped) then
+
+                leaveChannel(true)
+
+                if Radio.open then
+                    closeUI()
+                end
+
+                goto continue
+            end
+        end
+
+        -- ======================================================
+        -- RADIO ABIERTA
+        -- ======================================================
 
         if Radio.open then
 
@@ -978,6 +1220,8 @@ CreateThread(function()
                 leaveChannel(true)
 
                 closeUI()
+
+                goto continue
             end
 
             if IsEntityDead(ped) then
@@ -985,8 +1229,12 @@ CreateThread(function()
                 leaveChannel(true)
 
                 closeUI()
+
+                goto continue
             end
         end
+
+        ::continue::
     end
 end)
 
