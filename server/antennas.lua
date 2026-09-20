@@ -229,6 +229,125 @@ local function buildNetworkPayload()
     return payload
 end
 
+-- ============================================================================
+-- ITEM COST SYSTEM
+-- ============================================================================
+
+local function normalizeCost(cost)
+    cost = tonumber(cost) or 0
+
+    if cost < 0 then
+        cost = 0
+    end
+
+    return math.floor(cost)
+end
+
+local function buildCosts(operation)
+    local costs = Config.Antenna.Costs
+        and Config.Antenna.Costs[operation]
+
+    if type(costs) ~= 'table' then
+        return {}
+    end
+
+    local required = {}
+
+    for key, amount in pairs(costs) do
+        amount = normalizeCost(amount)
+
+        if amount > 0 then
+            local item = Config.Items[key]
+
+            if type(item) ~= 'string'
+                or item == '' then
+
+                return nil
+            end
+
+            required[#required + 1] = {
+                key = key,
+                item = item,
+                amount = amount
+            }
+        end
+    end
+
+    return required
+end
+
+local function checkItemCosts(source, operation)
+    local required = buildCosts(operation)
+
+    if not required then
+        return false, nil
+    end
+
+    for _, cost in ipairs(required) do
+        if not ServerBridge.hasItem(
+            source,
+            cost.item,
+            cost.amount
+        ) then
+
+            return false, required
+        end
+    end
+
+    return true, required
+end
+
+local function consumeItemCosts(source, required)
+    local consumed = {}
+
+    for _, cost in ipairs(required or {}) do
+        if not ServerBridge.removeItem(
+            source,
+            cost.item,
+            cost.amount
+        ) then
+
+            -- Roll back anything already consumed.
+            for _, rollback in ipairs(consumed) do
+                ServerBridge.addItem(
+                    source,
+                    rollback.item,
+                    rollback.amount
+                )
+            end
+
+            return false
+        end
+
+        consumed[#consumed + 1] = {
+            item = cost.item,
+            amount = cost.amount
+        }
+    end
+
+    return true
+end
+
+local function consumeCosts(source, operation)
+    local available, required = checkItemCosts(
+        source,
+        operation
+    )
+
+    if not available then
+        return false
+    end
+
+    return consumeItemCosts(
+        source,
+        required
+    )
+end
+
+-- ============================================================================
+-- SYNC
+-- ============================================================================
+
 RegisterNetEvent(
     'cb_localradio:server:requestSync',
     function()
@@ -254,6 +373,10 @@ RegisterNetEvent(
     end
 )
 
+-- ============================================================================
+-- CONSTRUCTION
+-- ============================================================================
+
 RegisterNetEvent(
     'cb_localradio:server:placeAntenna',
     function(data)
@@ -271,11 +394,13 @@ RegisterNetEvent(
         local coords = data.coords
         local heading = tonumber(data.heading) or 0
 
-        if not ServerBridge.hasItem(
+        -- Validate all construction materials first.
+        local available, required = checkItemCosts(
             src,
-            Config.Items.antennaKit,
-            1
-        ) then
+            'construction'
+        )
+
+        if not available then
             ServerBridge.notify(
                 src,
                 Config.Messages.noItems,
@@ -304,20 +429,6 @@ RegisterNetEvent(
         local id = newId()
         local owner = ServerBridge.identifier(src)
 
-        if not ServerBridge.removeItem(
-            src,
-            Config.Items.antennaKit,
-            1
-        ) then
-            ServerBridge.notify(
-                src,
-                Config.Messages.noItems,
-                'error'
-            )
-
-            return
-        end
-
         local antenna = {
             id = id,
 
@@ -338,9 +449,10 @@ RegisterNetEvent(
             state = 'active'
         }
 
-        RadioAntennas[id] = antenna
-
-        MySQL.insert.await([[
+        -- Insert the antenna first.
+        -- The inventory is only charged after the database operation
+        -- succeeds, preventing item loss if the database insert fails.
+        local insertId = MySQL.insert.await([[
             INSERT INTO cb_localradio_antennas
             (
                 id,
@@ -389,6 +501,42 @@ RegisterNetEvent(
             antenna.state
         })
 
+        if not insertId then
+            ServerBridge.notify(
+                src,
+                Config.Messages.noItems,
+                'error'
+            )
+
+            return
+        end
+
+        -- Consume the complete construction cost.
+        if not consumeItemCosts(
+            src,
+            required
+        ) then
+
+            -- Database succeeded but inventory failed.
+            -- Remove the antenna again so the operation remains atomic.
+            MySQL.update.await(
+                'DELETE FROM cb_localradio_antennas WHERE id = ?',
+                {
+                    id
+                }
+            )
+
+            ServerBridge.notify(
+                src,
+                Config.Messages.noItems,
+                'error'
+            )
+
+            return
+        end
+
+        RadioAntennas[id] = antenna
+
         rebuildNetworks()
 
         broadcast()
@@ -407,9 +555,17 @@ RegisterNetEvent(
     end
 )
 
+-- ============================================================================
+-- ANTENNA LOOKUP
+-- ============================================================================
+
 local function getAntenna(id)
     return RadioAntennas[tostring(id)]
 end
+
+-- ============================================================================
+-- REPAIR
+-- ============================================================================
 
 RegisterNetEvent(
     'cb_localradio:server:repair',
@@ -453,65 +609,30 @@ RegisterNetEvent(
             return
         end
 
-        if antenna.state == 'broken' then
-            if not ServerBridge.hasItem(
-                src,
-                Config.Items.repairKit,
-                1
-            ) then
-
-                ServerBridge.notify(
-                    src,
-                    Config.Messages.noItems,
-                    'error'
-                )
-
-                return
-            end
-
-            if not ServerBridge.removeItem(
-                src,
-                Config.Items.repairKit,
-                1
-            ) then
-                return
-            end
-
-            antenna.health = math.min(
-                100.0,
-                antenna.health
-                    + Config.Antenna.repair.health
-            )
-        else
-            if not ServerBridge.hasItem(
-                src,
-                Config.Items.maintenanceKit,
-                1
-            ) then
-
-                ServerBridge.notify(
-                    src,
-                    Config.Messages.noItems,
-                    'error'
-                )
-
-                return
-            end
-
-            if not ServerBridge.removeItem(
-                src,
-                Config.Items.maintenanceKit,
-                1
-            ) then
-                return
-            end
-
-            antenna.health = math.min(
-                100.0,
-                antenna.health
-                    + Config.Antenna.maintenance.health
-            )
+        if antenna.state ~= 'broken' then
+            return
         end
+
+        -- Check every repair material before consuming anything.
+        if not consumeCosts(
+            src,
+            'repair'
+        ) then
+
+            ServerBridge.notify(
+                src,
+                Config.Messages.noItems,
+                'error'
+            )
+
+            return
+        end
+
+        antenna.health = math.min(
+            100.0,
+            antenna.health
+                + Config.Antenna.repair.health
+        )
 
         antenna.state = stateForHealth(
             antenna.health
@@ -528,8 +649,21 @@ RegisterNetEvent(
             -1,
             buildNetworkPayload()
         )
+
+        ServerBridge.notify(
+            src,
+            RadioUtils.locale(
+                'antenna_repaired',
+                math.floor(antenna.health)
+            ),
+            'success'
+        )
     end
 )
+
+-- ============================================================================
+-- MAINTENANCE
+-- ============================================================================
 
 RegisterNetEvent(
     'cb_localradio:server:maintain',
@@ -582,10 +716,10 @@ RegisterNetEvent(
             return
         end
 
-        if not ServerBridge.hasItem(
+        -- Check every maintenance material before consuming anything.
+        if not consumeCosts(
             src,
-            Config.Items.maintenanceKit,
-            1
+            'maintenance'
         ) then
 
             ServerBridge.notify(
@@ -594,14 +728,6 @@ RegisterNetEvent(
                 'error'
             )
 
-            return
-        end
-
-        if not ServerBridge.removeItem(
-            src,
-            Config.Items.maintenanceKit,
-            1
-        ) then
             return
         end
 
@@ -626,8 +752,21 @@ RegisterNetEvent(
             -1,
             buildNetworkPayload()
         )
+
+        ServerBridge.notify(
+            src,
+            RadioUtils.locale(
+                'antenna_maintained',
+                math.floor(antenna.health)
+            ),
+            'success'
+        )
     end
 )
+
+-- ============================================================================
+-- REMOVE ANTENNA
+-- ============================================================================
 
 RegisterNetEvent(
     'cb_localradio:server:removeAntenna',
@@ -679,14 +818,18 @@ RegisterNetEvent(
             return
         end
 
-        RadioAntennas[id] = nil
-
-        MySQL.update.await(
+        local affected = MySQL.update.await(
             'DELETE FROM cb_localradio_antennas WHERE id = ?',
             {
                 id
             }
         )
+
+        if not affected or affected < 1 then
+            return
+        end
+
+        RadioAntennas[id] = nil
 
         -- Recuperacion del kit de antena.
         --
@@ -736,6 +879,10 @@ RegisterNetEvent(
     end
 )
 
+-- ============================================================================
+-- INITIALIZATION / NETWORK REFRESH
+-- ============================================================================
+
 CreateThread(function()
     while not ServerBridge.ready() do
         Wait(500)
@@ -762,6 +909,10 @@ CreateThread(function()
         )
     end
 end)
+
+-- ============================================================================
+-- ANTENNA DEGRADATION
+-- ============================================================================
 
 CreateThread(function()
     while not ServerBridge.ready() do

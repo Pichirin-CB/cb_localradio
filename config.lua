@@ -69,6 +69,25 @@ Config.Antenna = {
     -- Interaction distance.
     interactionDistance = 3.0,
 
+    -- Material costs.
+    Costs = {
+
+        construction = {
+            antennaKit = 1
+        },
+
+        repair = {
+            repairKit = 1,
+            metal = 2,
+            electronics = 1
+        },
+
+        maintenance = {
+            maintenanceKit = 1,
+            cable = 1
+        }
+    },
+
     -- Construction.
     construction = {
         duration = 15000,
