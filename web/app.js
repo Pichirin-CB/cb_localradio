@@ -3,6 +3,9 @@ const resource = typeof GetParentResourceName === 'function'
     : 'cb_localradio';
 
 const radio = document.getElementById('radio');
+const device = document.querySelector('.device');
+const dragHandle = document.querySelector('.top');
+
 const frequency = document.getElementById('frequency');
 const volume = document.getElementById('volume');
 const volumeValue = document.getElementById('volumeValue');
@@ -13,8 +16,28 @@ const led = document.getElementById('led');
 let currentFrequency = 0;
 let maxFrequency = 500;
 
+let currentSignal = false;
+let currentConnected = false;
+
 let locale = 'en';
 let translations = {};
+
+const POSITION_KEY = 'cb_localradio_position';
+
+const DEFAULT_POSITION = {
+    x: 50,
+    y: 50
+};
+
+let position = {
+    x: DEFAULT_POSITION.x,
+    y: DEFAULT_POSITION.y
+};
+
+let dragging = false;
+let dragPointerId = null;
+let dragOffsetX = 0;
+let dragOffsetY = 0;
 
 function post(event, data = {}) {
     return fetch(
@@ -81,15 +104,13 @@ function applyLocale(data = {}) {
 }
 
 function renderSignal(signal) {
-    if (signal) {
+    currentSignal = Boolean(signal);
+
+    if (currentSignal) {
         led.classList.add('ok');
 
         signalText.textContent = translate(
             'signal_ok'
-        );
-
-        networkState.textContent = translate(
-            'connected'
         );
     } else {
         led.classList.remove('ok');
@@ -97,10 +118,24 @@ function renderSignal(signal) {
         signalText.textContent = translate(
             'signal_none'
         );
+    }
+}
 
+function renderConnection(connected) {
+    currentConnected = Boolean(connected);
+
+    if (currentConnected) {
         networkState.textContent = translate(
-            'no_coverage'
+            'connected'
         );
+
+        networkState.classList.add('connected');
+    } else {
+        networkState.textContent = translate(
+            'disconnected'
+        );
+
+        networkState.classList.remove('connected');
     }
 }
 
@@ -140,6 +175,319 @@ function changeFrequency(delta) {
 
     renderFrequency(value);
 }
+
+/* ============================================================
+   POSITION
+============================================================ */
+
+function loadPosition() {
+    try {
+        const saved = localStorage.getItem(
+            POSITION_KEY
+        );
+
+        if (!saved) {
+            return;
+        }
+
+        const parsed = JSON.parse(saved);
+
+        if (
+            typeof parsed.x === 'number' &&
+            typeof parsed.y === 'number'
+        ) {
+            position.x = Math.max(
+                0,
+                Math.min(
+                    100,
+                    parsed.x
+                )
+            );
+
+            position.y = Math.max(
+                0,
+                Math.min(
+                    100,
+                    parsed.y
+                )
+            );
+        }
+    } catch (error) {
+        position.x = DEFAULT_POSITION.x;
+        position.y = DEFAULT_POSITION.y;
+    }
+}
+
+function savePosition() {
+    try {
+        localStorage.setItem(
+            POSITION_KEY,
+            JSON.stringify(position)
+        );
+    } catch (error) {
+        // Ignore storage errors.
+    }
+}
+
+function clampPosition(x, y) {
+    const width = device.offsetWidth;
+    const height = device.offsetHeight;
+
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    const margin = 10;
+
+    const minX = margin;
+    const minY = margin;
+
+    const maxX = Math.max(
+        minX,
+        viewportWidth - width - margin
+    );
+
+    const maxY = Math.max(
+        minY,
+        viewportHeight - height - margin
+    );
+
+    return {
+        x: Math.max(
+            minX,
+            Math.min(
+                maxX,
+                x
+            )
+        ),
+        y: Math.max(
+            minY,
+            Math.min(
+                maxY,
+                y
+            )
+        )
+    };
+}
+
+function positionToPixels() {
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    return {
+        x:
+            viewportWidth *
+            (position.x / 100),
+
+        y:
+            viewportHeight *
+            (position.y / 100)
+    };
+}
+
+function applyPosition() {
+    const pixels = positionToPixels();
+
+    const clamped = clampPosition(
+        pixels.x,
+        pixels.y
+    );
+
+    position.x =
+        (clamped.x / window.innerWidth) *
+        100;
+
+    position.y =
+        (clamped.y / window.innerHeight) *
+        100;
+
+    device.style.left = `${clamped.x}px`;
+    device.style.top = `${clamped.y}px`;
+
+    device.style.transform = 'none';
+}
+
+function centerPosition() {
+    const width = device.offsetWidth;
+    const height = device.offsetHeight;
+
+    const x =
+        Math.max(
+            10,
+            (window.innerWidth - width) / 2
+        );
+
+    const y =
+        Math.max(
+            10,
+            (window.innerHeight - height) / 2
+        );
+
+    position.x =
+        (x / window.innerWidth) *
+        100;
+
+    position.y =
+        (y / window.innerHeight) *
+        100;
+
+    applyPosition();
+    savePosition();
+}
+
+function startDrag(event) {
+    if (
+        event.button !== undefined &&
+        event.button !== 0
+    ) {
+        return;
+    }
+
+    if (
+        event.target.closest(
+            'button, input, a'
+        )
+    ) {
+        return;
+    }
+
+    dragging = true;
+    dragPointerId = event.pointerId;
+
+    const rect = device.getBoundingClientRect();
+
+    dragOffsetX =
+        event.clientX - rect.left;
+
+    dragOffsetY =
+        event.clientY - rect.top;
+
+    device.classList.add('dragging');
+
+    dragHandle.classList.add('dragging');
+
+    dragHandle.setPointerCapture(
+        event.pointerId
+    );
+
+    event.preventDefault();
+}
+
+function moveDrag(event) {
+    if (
+        !dragging ||
+        event.pointerId !== dragPointerId
+    ) {
+        return;
+    }
+
+    const next = clampPosition(
+        event.clientX - dragOffsetX,
+        event.clientY - dragOffsetY
+    );
+
+    position.x =
+        (next.x / window.innerWidth) *
+        100;
+
+    position.y =
+        (next.y / window.innerHeight) *
+        100;
+
+    device.style.left = `${next.x}px`;
+    device.style.top = `${next.y}px`;
+    device.style.transform = 'none';
+
+    event.preventDefault();
+}
+
+function stopDrag(event) {
+    if (
+        !dragging ||
+        (
+            event.pointerId !== undefined &&
+            event.pointerId !== dragPointerId
+        )
+    ) {
+        return;
+    }
+
+    dragging = false;
+
+    device.classList.remove('dragging');
+    dragHandle.classList.remove('dragging');
+
+    try {
+        if (
+            dragHandle.hasPointerCapture(
+                dragPointerId
+            )
+        ) {
+            dragHandle.releasePointerCapture(
+                dragPointerId
+            );
+        }
+    } catch (error) {
+        // Ignore pointer capture errors.
+    }
+
+    dragPointerId = null;
+
+    savePosition();
+}
+
+loadPosition();
+
+window.addEventListener(
+    'resize',
+    () => {
+        applyPosition();
+        savePosition();
+    }
+);
+
+dragHandle.addEventListener(
+    'pointerdown',
+    startDrag
+);
+
+dragHandle.addEventListener(
+    'pointermove',
+    moveDrag
+);
+
+dragHandle.addEventListener(
+    'pointerup',
+    stopDrag
+);
+
+dragHandle.addEventListener(
+    'pointercancel',
+    stopDrag
+);
+
+/*
+ * Double-click the radio header to restore
+ * the interface to the center of the screen.
+ */
+dragHandle.addEventListener(
+    'dblclick',
+    event => {
+
+        if (
+            event.target.closest(
+                'button, input, a'
+            )
+        ) {
+            return;
+        }
+
+        centerPosition();
+    }
+);
+
+/* ============================================================
+   BUTTONS
+============================================================ */
 
 document
     .getElementById('close')
@@ -184,6 +532,7 @@ document
 volume.addEventListener(
     'input',
     () => {
+
         volumeValue.textContent =
             `${volume.value}%`;
 
@@ -207,6 +556,10 @@ document
             }
         )
     );
+
+/* ============================================================
+   KEYBOARD
+============================================================ */
 
 document.addEventListener(
     'keydown',
@@ -239,17 +592,16 @@ document.addEventListener(
     }
 );
 
+/* ============================================================
+   NUI MESSAGES
+============================================================ */
+
 window.addEventListener(
     'message',
     event => {
+
         const data = event.data || {};
 
-        /*
-         * Apply translations first.
-         *
-         * This is important because renderSignal()
-         * depends on the translated strings.
-         */
         if (
             data.translations ||
             data.locale
@@ -258,6 +610,7 @@ window.addEventListener(
         }
 
         if (data.action === 'open') {
+
             radio.classList.remove('hidden');
 
             radio.setAttribute(
@@ -279,9 +632,18 @@ window.addEventListener(
             renderSignal(
                 Boolean(data.signal)
             );
+
+            renderConnection(
+                Boolean(data.on)
+            );
+
+            requestAnimationFrame(() => {
+                applyPosition();
+            });
         }
 
         if (data.action === 'close') {
+
             radio.classList.add('hidden');
 
             radio.setAttribute(
@@ -291,6 +653,7 @@ window.addEventListener(
         }
 
         if (data.action === 'state') {
+
             renderFrequency(
                 data.frequency || 0
             );
@@ -304,6 +667,14 @@ window.addEventListener(
             }
 
             if (
+                typeof data.on !== 'undefined'
+            ) {
+                renderConnection(
+                    Boolean(data.on)
+                );
+            }
+
+            if (
                 typeof data.volume !== 'undefined'
             ) {
                 renderVolume(
@@ -313,12 +684,22 @@ window.addEventListener(
         }
 
         if (data.action === 'signal') {
+
             renderSignal(
                 Boolean(data.signal)
             );
 
+            if (
+                typeof data.on !== 'undefined'
+            ) {
+                renderConnection(
+                    Boolean(data.on)
+                );
+            }
+
             renderFrequency(
-                data.frequency || currentFrequency
+                data.frequency ||
+                currentFrequency
             );
         }
     }

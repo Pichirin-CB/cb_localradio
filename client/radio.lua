@@ -31,7 +31,9 @@ local function openUI()
 
         frequency = Radio.frequency,
         volume = Radio.volume,
+
         signal = Radio.hasSignal,
+        on = Radio.on,
 
         maxFrequency = Config.Radio.maxFrequency,
 
@@ -75,7 +77,10 @@ local function leaveChannel(silent)
         action = 'state',
 
         frequency = 0,
+
         signal = Radio.hasSignal,
+        on = false,
+
         volume = Radio.volume
     })
 
@@ -139,7 +144,10 @@ local function joinChannel(channel)
             action = 'state',
 
             frequency = channel,
+
             signal = Radio.hasSignal,
+            on = true,
+
             volume = Radio.volume
         })
 
@@ -203,6 +211,8 @@ local function updateSignal()
             action = 'signal',
 
             signal = found,
+            on = Radio.on,
+
             frequency = Radio.frequency
         })
     end
@@ -370,7 +380,9 @@ RegisterNUICallback(
         cb({
             frequency = Radio.frequency,
             volume = Radio.volume,
+
             signal = Radio.hasSignal,
+            on = Radio.on,
 
             locale = RadioUtils.getLocale(),
             translations = RadioUtils.localeTable()
