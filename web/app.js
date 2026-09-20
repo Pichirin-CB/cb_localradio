@@ -49,7 +49,7 @@ let currentAntennaId = null;
 let antennaBusy = false;
 
 /* ============================================================
-   HELPERS
+   NUI
 ============================================================ */
 
 function post(event, data = {}) {
@@ -78,6 +78,10 @@ function translate(key) {
 
     return key;
 }
+
+/* ============================================================
+   LOCALE
+============================================================ */
 
 function applyLocale(data = {}) {
     if (
@@ -117,7 +121,7 @@ function applyLocale(data = {}) {
 }
 
 /* ============================================================
-   RADIO STATE
+   RADIO
 ============================================================ */
 
 function renderSignal(signal) {
@@ -130,15 +134,13 @@ function renderSignal(signal) {
     if (currentSignal) {
         led.classList.add('ok');
 
-        signalText.textContent = translate(
-            'signal_ok'
-        );
+        signalText.textContent =
+            translate('signal_ok');
     } else {
         led.classList.remove('ok');
 
-        signalText.textContent = translate(
-            'signal_none'
-        );
+        signalText.textContent =
+            translate('signal_none');
     }
 }
 
@@ -150,30 +152,34 @@ function renderConnection(connected) {
     }
 
     if (currentConnected) {
-        networkState.textContent = translate(
+        networkState.textContent =
+            translate('connected');
+
+        networkState.classList.add(
             'connected'
         );
-
-        networkState.classList.add('connected');
     } else {
-        networkState.textContent = translate(
-            'disconnected'
-        );
+        networkState.textContent =
+            translate('disconnected');
 
-        networkState.classList.remove('connected');
+        networkState.classList.remove(
+            'connected'
+        );
     }
 }
 
 function renderFrequency(value) {
-    currentFrequency = Number(value) || 0;
+    currentFrequency =
+        Number(value) || 0;
 
     if (!frequency) {
         return;
     }
 
-    frequency.textContent = currentFrequency
-        ? currentFrequency.toFixed(1)
-        : '000.0';
+    frequency.textContent =
+        currentFrequency
+            ? currentFrequency.toFixed(1)
+            : '000.0';
 }
 
 function renderVolume(value) {
@@ -190,12 +196,14 @@ function renderVolume(value) {
     }
 
     if (volumeValue) {
-        volumeValue.textContent = `${numeric}%`;
+        volumeValue.textContent =
+            `${numeric}%`;
     }
 }
 
 function changeFrequency(delta) {
-    let value = currentFrequency || 1;
+    let value =
+        currentFrequency || 1;
 
     value += delta;
 
@@ -211,44 +219,51 @@ function changeFrequency(delta) {
 }
 
 /* ============================================================
-   POSITION
+   RADIO POSITION
 ============================================================ */
 
 function loadPosition() {
     try {
-        const saved = localStorage.getItem(
-            POSITION_KEY
-        );
+        const saved =
+            localStorage.getItem(
+                POSITION_KEY
+            );
 
         if (!saved) {
             return;
         }
 
-        const parsed = JSON.parse(saved);
+        const parsed =
+            JSON.parse(saved);
 
         if (
             typeof parsed.x === 'number' &&
             typeof parsed.y === 'number'
         ) {
-            position.x = Math.max(
-                0,
-                Math.min(
-                    100,
-                    parsed.x
-                )
-            );
+            position.x =
+                Math.max(
+                    0,
+                    Math.min(
+                        100,
+                        parsed.x
+                    )
+                );
 
-            position.y = Math.max(
-                0,
-                Math.min(
-                    100,
-                    parsed.y
-                )
-            );
+            position.y =
+                Math.max(
+                    0,
+                    Math.min(
+                        100,
+                        parsed.y
+                    )
+                );
         }
     } catch (error) {
-        position.x = DEFAULT_POSITION.x;
-        position.y = DEFAULT_POSITION.y;
+        position.x =
+            DEFAULT_POSITION.x;
+
+        position.y =
+            DEFAULT_POSITION.y;
     }
 }
 
@@ -259,7 +274,7 @@ function savePosition() {
             JSON.stringify(position)
         );
     } catch (error) {
-        // Ignore storage errors.
+        // Ignorar errores de almacenamiento.
     }
 }
 
@@ -271,26 +286,38 @@ function clampPosition(x, y) {
         };
     }
 
-    const width = device.offsetWidth;
-    const height = device.offsetHeight;
+    const width =
+        device.offsetWidth;
 
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
+    const height =
+        device.offsetHeight;
+
+    const viewportWidth =
+        window.innerWidth;
+
+    const viewportHeight =
+        window.innerHeight;
 
     const margin = 10;
 
     const minX = margin;
     const minY = margin;
 
-    const maxX = Math.max(
-        minX,
-        viewportWidth - width - margin
-    );
+    const maxX =
+        Math.max(
+            minX,
+            viewportWidth -
+                width -
+                margin
+        );
 
-    const maxY = Math.max(
-        minY,
-        viewportHeight - height - margin
-    );
+    const maxY =
+        Math.max(
+            minY,
+            viewportHeight -
+                height -
+                margin
+        );
 
     return {
         x: Math.max(
@@ -300,6 +327,7 @@ function clampPosition(x, y) {
                 x
             )
         ),
+
         y: Math.max(
             minY,
             Math.min(
@@ -327,25 +355,33 @@ function applyPosition() {
         return;
     }
 
-    const pixels = positionToPixels();
+    const pixels =
+        positionToPixels();
 
-    const clamped = clampPosition(
-        pixels.x,
-        pixels.y
-    );
+    const clamped =
+        clampPosition(
+            pixels.x,
+            pixels.y
+        );
 
     position.x =
-        (clamped.x / window.innerWidth) *
+        (clamped.x /
+            window.innerWidth) *
         100;
 
     position.y =
-        (clamped.y / window.innerHeight) *
+        (clamped.y /
+            window.innerHeight) *
         100;
 
-    device.style.left = `${clamped.x}px`;
-    device.style.top = `${clamped.y}px`;
+    device.style.left =
+        `${clamped.x}px`;
 
-    device.style.transform = 'none';
+    device.style.top =
+        `${clamped.y}px`;
+
+    device.style.transform =
+        'none';
 }
 
 function centerPosition() {
@@ -353,27 +389,34 @@ function centerPosition() {
         return;
     }
 
-    const width = device.offsetWidth;
-    const height = device.offsetHeight;
+    const width =
+        device.offsetWidth;
+
+    const height =
+        device.offsetHeight;
 
     const x =
         Math.max(
             10,
-            (window.innerWidth - width) / 2
+            (window.innerWidth -
+                width) / 2
         );
 
     const y =
         Math.max(
             10,
-            (window.innerHeight - height) / 2
+            (window.innerHeight -
+                height) / 2
         );
 
     position.x =
-        (x / window.innerWidth) *
+        (x /
+            window.innerWidth) *
         100;
 
     position.y =
-        (y / window.innerHeight) *
+        (y /
+            window.innerHeight) *
         100;
 
     applyPosition();
@@ -381,7 +424,10 @@ function centerPosition() {
 }
 
 function startDrag(event) {
-    if (!device || !dragHandle) {
+    if (
+        !device ||
+        !dragHandle
+    ) {
         return;
     }
 
@@ -401,18 +447,28 @@ function startDrag(event) {
     }
 
     dragging = true;
-    dragPointerId = event.pointerId;
 
-    const rect = device.getBoundingClientRect();
+    dragPointerId =
+        event.pointerId;
+
+    const rect =
+        device.getBoundingClientRect();
 
     dragOffsetX =
-        event.clientX - rect.left;
+        event.clientX -
+        rect.left;
 
     dragOffsetY =
-        event.clientY - rect.top;
+        event.clientY -
+        rect.top;
 
-    device.classList.add('dragging');
-    dragHandle.classList.add('dragging');
+    device.classList.add(
+        'dragging'
+    );
+
+    dragHandle.classList.add(
+        'dragging'
+    );
 
     dragHandle.setPointerCapture(
         event.pointerId
@@ -424,28 +480,39 @@ function startDrag(event) {
 function moveDrag(event) {
     if (
         !dragging ||
-        event.pointerId !== dragPointerId ||
+        event.pointerId !==
+            dragPointerId ||
         !device
     ) {
         return;
     }
 
-    const next = clampPosition(
-        event.clientX - dragOffsetX,
-        event.clientY - dragOffsetY
-    );
+    const next =
+        clampPosition(
+            event.clientX -
+                dragOffsetX,
+            event.clientY -
+                dragOffsetY
+        );
 
     position.x =
-        (next.x / window.innerWidth) *
+        (next.x /
+            window.innerWidth) *
         100;
 
     position.y =
-        (next.y / window.innerHeight) *
+        (next.y /
+            window.innerHeight) *
         100;
 
-    device.style.left = `${next.x}px`;
-    device.style.top = `${next.y}px`;
-    device.style.transform = 'none';
+    device.style.left =
+        `${next.x}px`;
+
+    device.style.top =
+        `${next.y}px`;
+
+    device.style.transform =
+        'none';
 
     event.preventDefault();
 }
@@ -455,7 +522,8 @@ function stopDrag(event) {
         !dragging ||
         (
             event.pointerId !== undefined &&
-            event.pointerId !== dragPointerId
+            event.pointerId !==
+                dragPointerId
         )
     ) {
         return;
@@ -464,11 +532,15 @@ function stopDrag(event) {
     dragging = false;
 
     if (device) {
-        device.classList.remove('dragging');
+        device.classList.remove(
+            'dragging'
+        );
     }
 
     if (dragHandle) {
-        dragHandle.classList.remove('dragging');
+        dragHandle.classList.remove(
+            'dragging'
+        );
     }
 
     try {
@@ -483,7 +555,7 @@ function stopDrag(event) {
             );
         }
     } catch (error) {
-        // Ignore pointer capture errors.
+        // Ignorar errores de pointer capture.
     }
 
     dragPointerId = null;
@@ -495,46 +567,47 @@ function stopDrag(event) {
    ANTENNA HELPERS
 ============================================================ */
 
-function getAntennaElement(id) {
-    if (!id) {
-        return null;
-    }
-
-    return document.querySelector(
-        `[data-antenna-id="${CSS.escape(String(id))}"]`
-    );
-}
-
 function antennaStateLabel(state) {
     switch (state) {
         case 'active':
-            return translate('antenna_state_active');
+            return translate(
+                'antenna_state_active'
+            );
 
         case 'maintenance':
-            return translate('antenna_state_maintenance');
+            return translate(
+                'antenna_state_maintenance'
+            );
 
         case 'broken':
-            return translate('antenna_state_broken');
+            return translate(
+                'antenna_state_broken'
+            );
 
         default:
-            return translate('antenna_state_offline');
+            return translate(
+                'antenna_state_offline'
+            );
     }
 }
 
 function antennaTypeLabel(type) {
     if (type === 'world') {
-        return translate('antenna_type_world');
+        return translate(
+            'antenna_type_world'
+        );
     }
 
-    return translate('antenna_type_player');
+    return translate(
+        'antenna_type_player'
+    );
 }
 
-function antennaHealthClass(health) {
-    const value = Number(health) || 0;
-
-    if (value <= 0) {
-        return 'critical';
-    }
+function antennaHealthClass(
+    health
+) {
+    const value =
+        Number(health) || 0;
 
     if (value < 30) {
         return 'critical';
@@ -547,65 +620,12 @@ function antennaHealthClass(health) {
     return 'good';
 }
 
-function formatHealth(value) {
-    const health = Math.max(
-        0,
-        Math.min(
-            100,
-            Number(value) || 0
-        )
-    );
-
-    return Math.floor(health);
-}
-
-function renderAntennaHealth(health) {
-    const numeric = formatHealth(health);
-
-    const valueElement =
-        document.getElementById('antennaHealthValue');
-
-    const barElement =
-        document.getElementById('antennaHealthBar');
-
-    const container =
-        document.getElementById('antennaHealth');
-
-    if (valueElement) {
-        valueElement.textContent =
-            `${numeric}%`;
-    }
-
-    if (barElement) {
-        barElement.style.width =
-            `${numeric}%`;
-
-        barElement.classList.remove(
-            'good',
-            'warning',
-            'critical'
-        );
-
-        barElement.classList.add(
-            antennaHealthClass(numeric)
-        );
-    }
-
-    if (container) {
-        container.classList.remove(
-            'good',
-            'warning',
-            'critical'
-        );
-
-        container.classList.add(
-            antennaHealthClass(numeric)
-        );
-    }
-}
-
-function setAntennaText(id, value) {
-    const element = document.getElementById(id);
+function setAntennaText(
+    id,
+    value
+) {
+    const element =
+        document.getElementById(id);
 
     if (!element) {
         return;
@@ -619,20 +639,103 @@ function setAntennaText(id, value) {
             : value;
 }
 
-function renderAntennaState(antenna) {
+function renderAntennaHealth(
+    health
+) {
+    const numeric =
+        Math.max(
+            0,
+            Math.min(
+                100,
+                Number(health) || 0
+            )
+        );
+
+    const valueElement =
+        document.getElementById(
+            'antennaHealthValue'
+        );
+
+    const barElement =
+        document.getElementById(
+            'antennaHealthBar'
+        );
+
+    if (valueElement) {
+        valueElement.textContent =
+            `${Math.floor(numeric)}%`;
+    }
+
+    if (barElement) {
+        barElement.style.width =
+            `${numeric}%`;
+
+        barElement.classList.remove(
+            'good',
+            'warning',
+            'critical'
+        );
+
+        barElement.classList.add(
+            antennaHealthClass(
+                numeric
+            )
+        );
+    }
+}
+
+function renderAntennaState(
+    antenna
+) {
     if (!antenna) {
         return;
     }
 
     const state =
-        antenna.state || 'offline';
+        antenna.state ||
+        'offline';
+
+    setAntennaText(
+        'antennaId',
+        antenna.id
+    );
+
+    setAntennaText(
+        'antennaType',
+        antennaTypeLabel(
+            antenna.type
+        )
+    );
+
+    setAntennaText(
+        'antennaOwner',
+        antenna.owner ||
+            translate(
+                'antenna_system'
+            )
+    );
+
+    setAntennaText(
+        'antennaRadius',
+        antenna.radius !== undefined
+            ? Math.floor(
+                Number(
+                    antenna.radius
+                ) || 0
+            )
+            : '--'
+    );
 
     const stateElement =
-        document.getElementById('antennaState');
+        document.getElementById(
+            'antennaState'
+        );
 
     if (stateElement) {
         stateElement.textContent =
-            antennaStateLabel(state);
+            antennaStateLabel(
+                state
+            );
 
         stateElement.classList.remove(
             'active',
@@ -641,217 +744,385 @@ function renderAntennaState(antenna) {
             'offline'
         );
 
-        stateElement.classList.add(state);
+        stateElement.classList.add(
+            state
+        );
     }
 
-    setAntennaText(
-        'antennaType',
-        antennaTypeLabel(antenna.type)
-    );
+    const headerState =
+        document.getElementById(
+            'antennaHeaderState'
+        );
 
-    setAntennaText(
-        'antennaOwner',
-        antenna.owner || translate('antenna_system')
-    );
+    if (headerState) {
+        headerState.textContent =
+            antennaStateLabel(
+                state
+            );
 
-    setAntennaText(
-        'antennaRadius',
-        antenna.radius
-            ? `${Math.floor(Number(antenna.radius))}m`
-            : '--'
-    );
+        headerState.classList.remove(
+            'active',
+            'maintenance',
+            'broken',
+            'offline'
+        );
 
-    setAntennaText(
-        'antennaStatus',
-        antennaStateLabel(state)
-    );
+        headerState.classList.add(
+            state
+        );
+    }
+
+    const networkState =
+        document.getElementById(
+            'antennaNetworkState'
+        );
+
+    if (networkState) {
+        networkState.textContent =
+            antennaStateLabel(
+                state
+            );
+    }
 
     renderAntennaHealth(
         antenna.health
     );
 }
 
-function renderAntennaSignal(antenna) {
+function renderAntennaNetwork(
+    antenna
+) {
     if (!antenna) {
         return;
     }
 
-    const signal =
-        antenna.signal !== undefined
-            ? Boolean(antenna.signal)
-            : antenna.state === 'active';
-
-    const signalElement =
-        document.getElementById('antennaSignal');
-
-    if (!signalElement) {
-        return;
-    }
-
-    signalElement.textContent = signal
-        ? translate('signal_ok')
-        : translate('signal_none');
-
-    signalElement.classList.toggle(
-        'active',
-        signal
+    setAntennaText(
+        'antennaSignalNetwork',
+        antenna.state === 'active'
+            ? translate('signal_ok')
+            : translate('signal_none')
     );
 
-    signalElement.classList.toggle(
-        'offline',
-        !signal
+    setAntennaText(
+        'antennaPlayers',
+        antenna.players !== undefined
+            ? antenna.players
+            : 0
+    );
+
+    setAntennaText(
+        'antennaDistance',
+        antenna.distance !== undefined
+            ? Math.floor(
+                Number(
+                    antenna.distance
+                ) || 0
+            )
+            : 0
     );
 }
 
-function renderAntennaMaterials(materials) {
+function renderCost(
+    id,
+    costs
+) {
+    const element =
+        document.getElementById(id);
+
+    if (!element) {
+        return;
+    }
+
+    if (
+        !Array.isArray(costs) ||
+        costs.length === 0
+    ) {
+        element.textContent =
+            translate(
+                'antenna_no_cost'
+            );
+
+        return;
+    }
+
+    element.textContent =
+        costs
+            .map(cost => {
+                const amount =
+                    Number(
+                        cost.amount
+                    ) || 0;
+
+                const item =
+                    cost.item ||
+                    cost.key ||
+                    '';
+
+                return `${amount}x ${item}`;
+            })
+            .join(' + ');
+}
+
+function renderMaterials(
+    antenna
+) {
     const container =
-        document.getElementById('antennaMaterials');
+        document.getElementById(
+            'antennaMaterials'
+        );
 
     if (!container) {
         return;
     }
 
-    container.innerHTML = '';
+    const costs = [];
 
     if (
-        !materials ||
-        typeof materials !== 'object'
+        Array.isArray(
+            antenna.repairCosts
+        )
     ) {
+        costs.push(
+            ...antenna.repairCosts
+        );
+    }
+
+    if (
+        Array.isArray(
+            antenna.maintenanceCosts
+        )
+    ) {
+        costs.push(
+            ...antenna.maintenanceCosts
+        );
+    }
+
+    const unique = new Map();
+
+    costs.forEach(cost => {
+        const key =
+            cost.item ||
+            cost.key;
+
+        if (!key) {
+            return;
+        }
+
+        if (!unique.has(key)) {
+            unique.set(
+                key,
+                {
+                    ...cost
+                }
+            );
+        }
+    });
+
+    container.innerHTML = '';
+
+    if (unique.size === 0) {
+        const empty =
+            document.createElement(
+                'div'
+            );
+
+        empty.className =
+            'antenna-material';
+
+        empty.textContent =
+            translate(
+                'antenna_no_materials'
+            );
+
+        container.appendChild(
+            empty
+        );
+
         return;
     }
 
-    Object.entries(materials).forEach(
-        ([key, material]) => {
+    unique.forEach(
+        material => {
 
             const row =
-                document.createElement('div');
+                document.createElement(
+                    'div'
+                );
 
             row.className =
                 'antenna-material';
 
-            const label =
-                document.createElement('span');
-
-            label.className =
-                'antenna-material-label';
-
-            label.textContent =
-                material.label ||
-                key;
-
-            const amount =
-                document.createElement('span');
-
-            amount.className =
-                'antenna-material-amount';
-
-            const required =
-                Number(material.required) || 0;
-
-            const available =
-                Number(material.available) || 0;
-
-            amount.textContent =
-                `${available}/${required}`;
-
-            if (available < required) {
-                row.classList.add('missing');
+            if (
+                material.available === false
+            ) {
+                row.classList.add(
+                    'missing'
+                );
             } else {
-                row.classList.add('available');
+                row.classList.add(
+                    'available'
+                );
             }
 
-            row.appendChild(label);
-            row.appendChild(amount);
+            const label =
+                document.createElement(
+                    'strong'
+                );
 
-            container.appendChild(row);
+            label.textContent =
+                material.item ||
+                material.key;
+
+            const amount =
+                document.createElement(
+                    'small'
+                );
+
+            amount.textContent =
+                `${material.amount || 0}`;
+
+            row.appendChild(
+                label
+            );
+
+            row.appendChild(
+                amount
+            );
+
+            container.appendChild(
+                row
+            );
         }
     );
 }
 
-function canPerformAntennaOperation(
-    operation,
+function setOperationButton(
+    id,
+    enabled
+) {
+    const button =
+        document.getElementById(id);
+
+    if (!button) {
+        return;
+    }
+
+    button.disabled =
+        !enabled ||
+        antennaBusy;
+}
+
+function updateAntennaButtons(
     antenna
 ) {
-    if (
-        antennaBusy ||
-        !antenna
-    ) {
-        return false;
+    if (!antenna) {
+        return;
     }
 
-    const health =
-        Number(antenna.health) || 0;
+    setOperationButton(
+        'antennaRepair',
+        antenna.canRepair === true
+    );
 
-    if (operation === 'repair') {
-        return antenna.state === 'broken' ||
-            health <= 0;
-    }
+    setOperationButton(
+        'antennaMaintain',
+        antenna.canMaintain === true
+    );
 
-    if (operation === 'maintenance') {
-        return health <
-            95;
-    }
-
-    if (operation === 'remove') {
-        return antenna.type === 'player';
-    }
-
-    return false;
+    setOperationButton(
+        'antennaRemove',
+        antenna.canRemove === true
+    );
 }
 
-function setAntennaBusy(value) {
-    antennaBusy = Boolean(value);
+function showOperationStatus(
+    title,
+    message,
+    visible = true
+) {
+    const status =
+        document.getElementById(
+            'antennaOperationStatus'
+        );
 
-    document
-        .querySelectorAll(
-            '[data-antenna-operation]'
-        )
-        .forEach(button => {
-            button.disabled =
-                antennaBusy;
-        });
+    const titleElement =
+        document.getElementById(
+            'antennaOperationTitle'
+        );
+
+    const messageElement =
+        document.getElementById(
+            'antennaOperationMessage'
+        );
+
+    if (status) {
+        status.classList.toggle(
+            'hidden',
+            !visible
+        );
+    }
+
+    if (titleElement) {
+        titleElement.textContent =
+            title;
+    }
+
+    if (messageElement) {
+        messageElement.textContent =
+            message;
+    }
 }
 
-function updateAntennaButtons(antenna) {
-    document
-        .querySelectorAll(
-            '[data-antenna-operation]'
-        )
-        .forEach(button => {
+function setAntennaBusy(
+    busy
+) {
+    antennaBusy =
+        Boolean(busy);
 
-            const operation =
-                button.dataset.antennaOperation;
+    updateAntennaButtons(
+        currentAntenna
+    );
 
-            let allowed =
-                canPerformAntennaOperation(
-                    operation,
-                    antenna
-                );
-
-            if (
-                operation === 'remove' &&
-                antenna.type !== 'player'
-            ) {
-                allowed = false;
-            }
-
-            button.disabled =
-                !allowed ||
-                antennaBusy;
-        });
+    if (antennaBusy) {
+        showOperationStatus(
+            translate(
+                'antenna_processing'
+            ),
+            translate(
+                'antenna_please_wait'
+            ),
+            true
+        );
+    } else {
+        showOperationStatus(
+            '',
+            '',
+            false
+        );
+    }
 }
 
-function openAntennaTerminal(data) {
+/* ============================================================
+   ANTENNA TERMINAL
+============================================================ */
+
+function openAntennaTerminal(
+    data
+) {
+    if (!data) {
+        return;
+    }
+
     antennaTerminalOpen = true;
-
-    currentAntennaId =
-        data.antennaId ||
-        data.id ||
-        null;
+    antennaBusy = false;
 
     currentAntenna =
-        data.antenna ||
-        data;
+        data.antenna || null;
+
+    currentAntennaId =
+        currentAntenna
+            ? currentAntenna.id
+            : null;
 
     const terminal =
         document.getElementById(
@@ -859,7 +1130,9 @@ function openAntennaTerminal(data) {
         );
 
     if (terminal) {
-        terminal.classList.remove('hidden');
+        terminal.classList.remove(
+            'hidden'
+        );
 
         terminal.setAttribute(
             'aria-hidden',
@@ -867,28 +1140,52 @@ function openAntennaTerminal(data) {
         );
     }
 
-    renderAntennaState(
-        currentAntenna
-    );
+    applyLocale(data);
 
-    renderAntennaSignal(
-        currentAntenna
-    );
+    if (currentAntenna) {
+        renderAntennaState(
+            currentAntenna
+        );
 
-    renderAntennaMaterials(
-        data.materials
-    );
+        renderAntennaNetwork(
+            currentAntenna
+        );
 
-    updateAntennaButtons(
-        currentAntenna
+        renderMaterials(
+            currentAntenna
+        );
+
+        renderCost(
+            'antennaRepairCost',
+            currentAntenna.repairCosts
+        );
+
+        renderCost(
+            'antennaMaintenanceCost',
+            currentAntenna.maintenanceCosts
+        );
+
+        updateAntennaButtons(
+            currentAntenna
+        );
+    }
+
+    showOperationStatus(
+        '',
+        '',
+        false
     );
 }
 
-function closeAntennaTerminal(sendCallback = true) {
-    antennaTerminalOpen = false;
+function closeAntennaTerminal(
+    notifyClient = true
+) {
+    antennaTerminalOpen =
+        false;
+
+    antennaBusy = false;
     currentAntenna = null;
     currentAntennaId = null;
-    antennaBusy = false;
 
     const terminal =
         document.getElementById(
@@ -896,7 +1193,9 @@ function closeAntennaTerminal(sendCallback = true) {
         );
 
     if (terminal) {
-        terminal.classList.add('hidden');
+        terminal.classList.add(
+            'hidden'
+        );
 
         terminal.setAttribute(
             'aria-hidden',
@@ -904,62 +1203,66 @@ function closeAntennaTerminal(sendCallback = true) {
         );
     }
 
-    if (sendCallback) {
-        post('closeAntenna');
+    showOperationStatus(
+        '',
+        '',
+        false
+    );
+
+    if (notifyClient) {
+        post(
+            'antennaClose'
+        );
     }
 }
 
-function refreshAntennaTerminal(data) {
-    if (!antennaTerminalOpen) {
+function refreshAntennaTerminal(
+    antenna
+) {
+    if (
+        !antennaTerminalOpen ||
+        !antenna
+    ) {
         return;
     }
 
-    if (
-        data &&
-        data.antenna
-    ) {
-        currentAntenna =
-            data.antenna;
-    } else if (
-        data &&
-        data.id &&
-        currentAntenna &&
-        data.id === currentAntenna.id
-    ) {
-        currentAntenna = {
-            ...currentAntenna,
-            ...data
-        };
-    } else if (
-        data &&
-        currentAntenna
-    ) {
-        currentAntenna = {
-            ...currentAntenna,
-            ...data
-        };
-    }
+    currentAntenna =
+        antenna;
+
+    currentAntennaId =
+        antenna.id;
 
     renderAntennaState(
-        currentAntenna
+        antenna
     );
 
-    renderAntennaSignal(
-        currentAntenna
+    renderAntennaNetwork(
+        antenna
     );
 
-    if (data && data.materials) {
-        renderAntennaMaterials(
-            data.materials
-        );
-    }
+    renderMaterials(
+        antenna
+    );
+
+    renderCost(
+        'antennaRepairCost',
+        antenna.repairCosts
+    );
+
+    renderCost(
+        'antennaMaintenanceCost',
+        antenna.maintenanceCosts
+    );
 
     updateAntennaButtons(
-        currentAntenna
+        antenna
     );
 }
 
-function requestAntennaOperation(operation) {
+function requestAntennaOperation(
+    operation,
+    callback
+) {
     if (
         !currentAntennaId ||
         !currentAntenna
@@ -967,33 +1270,31 @@ function requestAntennaOperation(operation) {
         return;
     }
 
-    if (
-        !canPerformAntennaOperation(
-            operation,
-            currentAntenna
-        )
-    ) {
+    if (antennaBusy) {
+        return;
+    }
+
+    const callbackName =
+        callback;
+
+    if (!callbackName) {
         return;
     }
 
     setAntennaBusy(true);
 
     post(
-        'antennaOperation',
+        callbackName,
         {
-            antennaId: currentAntennaId,
-            operation
+            id: currentAntennaId
         }
     ).catch(() => {
         setAntennaBusy(false);
-        updateAntennaButtons(
-            currentAntenna
-        );
     });
 }
 
 /* ============================================================
-   LOAD / POSITION
+   INITIAL POSITION
 ============================================================ */
 
 loadPosition();
@@ -1027,10 +1328,6 @@ if (dragHandle) {
         stopDrag
     );
 
-    /*
-     * Double-click the radio header to restore
-     * the interface to the center of the screen.
-     */
     dragHandle.addEventListener(
         'dblclick',
         event => {
@@ -1053,7 +1350,9 @@ if (dragHandle) {
 ============================================================ */
 
 const closeButton =
-    document.getElementById('close');
+    document.getElementById(
+        'close'
+    );
 
 if (closeButton) {
     closeButton.addEventListener(
@@ -1063,7 +1362,9 @@ if (closeButton) {
 }
 
 const joinButton =
-    document.getElementById('join');
+    document.getElementById(
+        'join'
+    );
 
 if (joinButton) {
     joinButton.addEventListener(
@@ -1071,14 +1372,17 @@ if (joinButton) {
         () => post(
             'join',
             {
-                frequency: currentFrequency
+                frequency:
+                    currentFrequency
             }
         )
     );
 }
 
 const leaveButton =
-    document.getElementById('leave');
+    document.getElementById(
+        'leave'
+    );
 
 if (leaveButton) {
     leaveButton.addEventListener(
@@ -1088,7 +1392,9 @@ if (leaveButton) {
 }
 
 const upButton =
-    document.getElementById('up');
+    document.getElementById(
+        'up'
+    );
 
 if (upButton) {
     upButton.addEventListener(
@@ -1098,7 +1404,9 @@ if (upButton) {
 }
 
 const downButton =
-    document.getElementById('down');
+    document.getElementById(
+        'down'
+    );
 
 if (downButton) {
     downButton.addEventListener(
@@ -1112,13 +1420,18 @@ if (volume) {
         'input',
         () => {
 
-            volumeValue.textContent =
-                `${volume.value}%`;
+            if (volumeValue) {
+                volumeValue.textContent =
+                    `${volume.value}%`;
+            }
 
             post(
                 'volume',
                 {
-                    volume: Number(volume.value)
+                    volume:
+                        Number(
+                            volume.value
+                        )
                 }
             );
         }
@@ -1126,7 +1439,9 @@ if (volume) {
 }
 
 const channelButton =
-    document.getElementById('channel');
+    document.getElementById(
+        'channel'
+    );
 
 if (channelButton) {
     channelButton.addEventListener(
@@ -1134,7 +1449,8 @@ if (channelButton) {
         () => post(
             'frequency',
             {
-                frequency: currentFrequency
+                frequency:
+                    currentFrequency
             }
         )
     );
@@ -1144,26 +1460,6 @@ if (channelButton) {
    ANTENNA BUTTONS
 ============================================================ */
 
-document
-    .querySelectorAll(
-        '[data-antenna-operation]'
-    )
-    .forEach(button => {
-
-        button.addEventListener(
-            'click',
-            () => {
-
-                const operation =
-                    button.dataset.antennaOperation;
-
-                requestAntennaOperation(
-                    operation
-                );
-            }
-        );
-    });
-
 const antennaClose =
     document.getElementById(
         'antennaClose'
@@ -1172,19 +1468,62 @@ const antennaClose =
 if (antennaClose) {
     antennaClose.addEventListener(
         'click',
-        () => closeAntennaTerminal()
+        () => {
+            closeAntennaTerminal(
+                true
+            );
+        }
     );
 }
 
-const antennaBack =
+const antennaRepair =
     document.getElementById(
-        'antennaBack'
+        'antennaRepair'
     );
 
-if (antennaBack) {
-    antennaBack.addEventListener(
+if (antennaRepair) {
+    antennaRepair.addEventListener(
         'click',
-        () => closeAntennaTerminal()
+        () => {
+            requestAntennaOperation(
+                'repair',
+                'antennaRepair'
+            );
+        }
+    );
+}
+
+const antennaMaintain =
+    document.getElementById(
+        'antennaMaintain'
+    );
+
+if (antennaMaintain) {
+    antennaMaintain.addEventListener(
+        'click',
+        () => {
+            requestAntennaOperation(
+                'maintenance',
+                'antennaMaintenance'
+            );
+        }
+    );
+}
+
+const antennaRemove =
+    document.getElementById(
+        'antennaRemove'
+    );
+
+if (antennaRemove) {
+    antennaRemove.addEventListener(
+        'click',
+        () => {
+            requestAntennaOperation(
+                'remove',
+                'antennaRemove'
+            );
+        }
     );
 }
 
@@ -1202,39 +1541,45 @@ document.addEventListener(
         ) {
             event.preventDefault();
 
-            closeAntennaTerminal();
+            closeAntennaTerminal(
+                true
+            );
 
             return;
         }
 
-        if (
-            antennaTerminalOpen &&
-            event.key === 'Enter'
-        ) {
+        if (antennaTerminalOpen) {
             return;
         }
 
         if (event.key === 'Escape') {
             post('close');
+
+            return;
         }
 
         if (event.key === 'ArrowUp') {
             event.preventDefault();
 
             changeFrequency(1);
+
+            return;
         }
 
         if (event.key === 'ArrowDown') {
             event.preventDefault();
 
             changeFrequency(-1);
+
+            return;
         }
 
         if (event.key === 'Enter') {
             post(
                 'join',
                 {
-                    frequency: currentFrequency
+                    frequency:
+                        currentFrequency
                 }
             );
         }
@@ -1242,33 +1587,37 @@ document.addEventListener(
 );
 
 /* ============================================================
-   NUI MESSAGES
+   NUI MESSAGE HANDLER
 ============================================================ */
 
 window.addEventListener(
     'message',
     event => {
 
-        const data = event.data || {};
+        const data =
+            event.data || {};
 
         if (
-            data.translations ||
-            data.locale
+            data.locale ||
+            data.translations
         ) {
             applyLocale(data);
         }
 
         /* ----------------------------------------------------
-           RADIO
+           RADIO OPEN
         ---------------------------------------------------- */
 
-        if (data.action === 'open') {
-
+        if (
+            data.action === 'open'
+        ) {
             if (!radio) {
                 return;
             }
 
-            radio.classList.remove('hidden');
+            radio.classList.remove(
+                'hidden'
+            );
 
             radio.setAttribute(
                 'aria-hidden',
@@ -1276,152 +1625,253 @@ window.addEventListener(
             );
 
             maxFrequency =
-                Number(data.maxFrequency) || 500;
+                Number(
+                    data.maxFrequency
+                ) || 500;
 
             renderFrequency(
-                data.frequency || 0
+                data.frequency
             );
 
             renderVolume(
-                data.volume || 50
+                data.volume
             );
 
             renderSignal(
-                Boolean(data.signal)
+                data.signal
             );
 
             renderConnection(
-                Boolean(data.on)
+                data.on
             );
 
-            requestAnimationFrame(() => {
-                applyPosition();
-            });
+            requestAnimationFrame(
+                () => {
+                    applyPosition();
+                }
+            );
+
+            return;
         }
 
-        if (data.action === 'close') {
+        /* ----------------------------------------------------
+           RADIO CLOSE
+        ---------------------------------------------------- */
 
+        if (
+            data.action === 'close'
+        ) {
             if (!radio) {
                 return;
             }
 
-            radio.classList.add('hidden');
+            radio.classList.add(
+                'hidden'
+            );
 
             radio.setAttribute(
                 'aria-hidden',
                 'true'
             );
+
+            return;
         }
 
-        if (data.action === 'state') {
+        /* ----------------------------------------------------
+           RADIO STATE
+        ---------------------------------------------------- */
 
-            renderFrequency(
-                data.frequency || 0
-            );
+        if (
+            data.action === 'state'
+        ) {
+            if (
+                data.frequency !==
+                undefined
+            ) {
+                renderFrequency(
+                    data.frequency
+                );
+            }
 
             if (
-                typeof data.signal !== 'undefined'
+                data.signal !==
+                undefined
             ) {
                 renderSignal(
-                    Boolean(data.signal)
+                    data.signal
                 );
             }
 
             if (
-                typeof data.on !== 'undefined'
+                data.on !==
+                undefined
             ) {
                 renderConnection(
-                    Boolean(data.on)
+                    data.on
                 );
             }
 
             if (
-                typeof data.volume !== 'undefined'
+                data.volume !==
+                undefined
             ) {
                 renderVolume(
                     data.volume
                 );
             }
-        }
 
-        if (data.action === 'signal') {
-
-            renderSignal(
-                Boolean(data.signal)
-            );
-
-            if (
-                typeof data.on !== 'undefined'
-            ) {
-                renderConnection(
-                    Boolean(data.on)
-                );
-            }
-
-            renderFrequency(
-                data.frequency ||
-                currentFrequency
-            );
+            return;
         }
 
         /* ----------------------------------------------------
-           ANTENNA TERMINAL
+           RADIO SIGNAL
         ---------------------------------------------------- */
 
         if (
-            data.action === 'antennaOpen' ||
-            data.action === 'openAntenna'
+            data.action === 'signal'
         ) {
-            openAntennaTerminal(data);
-        }
-
-        if (
-            data.action === 'antennaClose' ||
-            data.action === 'closeAntenna'
-        ) {
-            closeAntennaTerminal(false);
-        }
-
-        if (
-            data.action === 'antennaState' ||
-            data.action === 'antennaUpdate' ||
-            data.action === 'antennaRefresh'
-        ) {
-            setAntennaBusy(false);
-
-            refreshAntennaTerminal(data);
-        }
-
-        if (
-            data.action === 'antennaOperation'
-        ) {
-            setAntennaBusy(
-                Boolean(data.busy)
+            renderSignal(
+                data.signal
             );
 
-            if (data.antenna) {
-                refreshAntennaTerminal(
-                    data
-                );
-            }
-        }
-
-        if (
-            data.action === 'antennaOperationResult'
-        ) {
-            setAntennaBusy(false);
-
-            if (data.antenna) {
-                refreshAntennaTerminal(
-                    data
+            if (
+                data.on !==
+                undefined
+            ) {
+                renderConnection(
+                    data.on
                 );
             }
 
             if (
-                data.close === true
+                data.frequency !==
+                undefined
             ) {
-                closeAntennaTerminal(false);
+                renderFrequency(
+                    data.frequency
+                );
             }
+
+            return;
+        }
+
+        /* ----------------------------------------------------
+           ANTENNA OPEN
+        ---------------------------------------------------- */
+
+        if (
+            data.action ===
+                'antennaOpen'
+        ) {
+            openAntennaTerminal(
+                data
+            );
+
+            return;
+        }
+
+        /* ----------------------------------------------------
+           ANTENNA UPDATE
+        ---------------------------------------------------- */
+
+        if (
+            data.action ===
+                'antennaUpdate'
+        ) {
+            setAntennaBusy(
+                false
+            );
+
+            refreshAntennaTerminal(
+                data.antenna
+            );
+
+            return;
+        }
+
+        /* ----------------------------------------------------
+           ANTENNA CLOSE
+        ---------------------------------------------------- */
+
+        if (
+            data.action ===
+                'antennaClose'
+        ) {
+            closeAntennaTerminal(
+                false
+            );
+
+            return;
+        }
+
+        /* ----------------------------------------------------
+           OPERATION STARTED
+        ---------------------------------------------------- */
+
+        if (
+            data.action ===
+                'antennaOperation'
+        ) {
+            setAntennaBusy(
+                true
+            );
+
+            if (data.antenna) {
+                refreshAntennaTerminal(
+                    data.antenna
+                );
+            }
+
+            return;
+        }
+
+        /* ----------------------------------------------------
+           OPERATION RESULT
+        ---------------------------------------------------- */
+
+        if (
+            data.action ===
+                'antennaOperationResult'
+        ) {
+            setAntennaBusy(
+                false
+            );
+
+            if (data.antenna) {
+                refreshAntennaTerminal(
+                    data.antenna
+                );
+            }
+
+            if (data.success) {
+                showOperationStatus(
+                    translate(
+                        'antenna_operation_complete'
+                    ),
+                    data.message ||
+                        translate(
+                            'antenna_operation_complete'
+                        ),
+                    true
+                );
+
+                setTimeout(
+                    () => {
+                        if (
+                            antennaTerminalOpen
+                        ) {
+                            showOperationStatus(
+                                '',
+                                '',
+                                false
+                            );
+                        }
+                    },
+                    2500
+                );
+            }
+
+            return;
         }
     }
 );
