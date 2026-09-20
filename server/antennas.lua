@@ -158,20 +158,37 @@ local function loadDatabase()
     end
 end
 
-local function saveAntenna(a)
-    MySQL.update.await([[
-        UPDATE cb_localradio_antennas
-        SET
-            health = ?,
-            state = ?,
-            last_maintenance = NOW(),
-            last_degradation = NOW()
-        WHERE id = ?
-    ]], {
-        a.health,
-        a.state,
-        a.id
-    })
+local function saveAntenna(a, updateMaintenance)
+    local query
+
+    if updateMaintenance then
+        query = [[
+            UPDATE cb_localradio_antennas
+            SET
+                health = ?,
+                state = ?,
+                last_maintenance = NOW(),
+                last_degradation = NOW()
+            WHERE id = ?
+        ]]
+    else
+        query = [[
+            UPDATE cb_localradio_antennas
+            SET
+                health = ?,
+                state = ?
+            WHERE id = ?
+        ]]
+    end
+
+    MySQL.update.await(
+        query,
+        {
+            a.health,
+            a.state,
+            a.id
+        }
+    )
 end
 
 local function broadcast()
@@ -424,6 +441,7 @@ local function buildUICosts(
             key = cost.key,
             item = cost.item,
             amount = cost.amount,
+
             available = ServerBridge.hasItem(
                 source,
                 cost.item,
@@ -492,6 +510,38 @@ local function buildAntennaUIData(
     }
 end
 
+local function sendAntennaUIUpdate(
+    source,
+    antenna
+)
+    if not source
+        or source <= 0
+        or not antenna then
+
+        return
+    end
+
+    local data =
+        buildAntennaUIData(
+            source,
+            antenna
+        )
+
+    TriggerClientEvent(
+        'cb_localradio:client:updateAntennaUI',
+        source,
+        data
+    )
+end
+
+local function sendNetworkSync()
+    TriggerClientEvent(
+        'cb_localradio:client:syncNetworks',
+        -1,
+        buildNetworkPayload()
+    )
+end
+
 -- ============================================================================
 -- SYNC
 -- ============================================================================
@@ -539,7 +589,9 @@ RegisterNetEvent(
         end
 
         local antenna =
-            RadioAntennas[tostring(id)]
+            RadioAntennas[
+                tostring(id)
+            ]
 
         if not antenna then
             return
@@ -596,7 +648,9 @@ RegisterNetEvent(
         end
 
         local antenna =
-            RadioAntennas[tostring(id)]
+            RadioAntennas[
+                tostring(id)
+            ]
 
         if not antenna then
             return
@@ -628,6 +682,7 @@ RegisterNetEvent(
 
         if operation == 'maintenance' then
             if antenna.state ~= 'maintenance' then
+
                 ServerBridge.notify(
                     src,
                     RadioUtils.locale(
@@ -642,6 +697,7 @@ RegisterNetEvent(
 
         if operation == 'remove' then
             if antenna.type ~= 'player' then
+
                 ServerBridge.notify(
                     src,
                     Config.Messages.notOwner,
@@ -655,6 +711,7 @@ RegisterNetEvent(
                 ServerBridge.identifier(src)
 
             if antenna.owner ~= owner then
+
                 ServerBridge.notify(
                     src,
                     Config.Messages.notOwner,
@@ -719,6 +776,7 @@ RegisterNetEvent(
             )
 
         if not available then
+
             ServerBridge.notify(
                 src,
                 Config.Messages.noItems,
@@ -829,6 +887,7 @@ RegisterNetEvent(
             })
 
         if not insertId then
+
             ServerBridge.notify(
                 src,
                 'No se pudo guardar la antena.',
@@ -864,12 +923,7 @@ RegisterNetEvent(
 
         rebuildNetworks()
         broadcast()
-
-        TriggerClientEvent(
-            'cb_localradio:client:syncNetworks',
-            -1,
-            buildNetworkPayload()
-        )
+        sendNetworkSync()
 
         ServerBridge.notify(
             src,
@@ -967,16 +1021,17 @@ RegisterNetEvent(
             )
 
         saveAntenna(
-            antenna
+            antenna,
+            false
         )
 
         rebuildNetworks()
         broadcast()
+        sendNetworkSync()
 
-        TriggerClientEvent(
-            'cb_localradio:client:syncNetworks',
-            -1,
-            buildNetworkPayload()
+        sendAntennaUIUpdate(
+            src,
+            antenna
         )
 
         ServerBridge.notify(
@@ -1036,6 +1091,7 @@ RegisterNetEvent(
         end
 
         if antenna.state ~= 'maintenance' then
+
             ServerBridge.notify(
                 src,
                 RadioUtils.locale(
@@ -1078,16 +1134,17 @@ RegisterNetEvent(
             )
 
         saveAntenna(
-            antenna
+            antenna,
+            true
         )
 
         rebuildNetworks()
         broadcast()
+        sendNetworkSync()
 
-        TriggerClientEvent(
-            'cb_localradio:client:syncNetworks',
-            -1,
-            buildNetworkPayload()
+        sendAntennaUIUpdate(
+            src,
+            antenna
         )
 
         ServerBridge.notify(
@@ -1152,6 +1209,7 @@ RegisterNetEvent(
             ServerBridge.identifier(src)
 
         if antenna.owner ~= owner then
+
             ServerBridge.notify(
                 src,
                 Config.Messages.notOwner,
@@ -1211,11 +1269,11 @@ RegisterNetEvent(
 
         rebuildNetworks()
         broadcast()
+        sendNetworkSync()
 
         TriggerClientEvent(
-            'cb_localradio:client:syncNetworks',
-            -1,
-            buildNetworkPayload()
+            'cb_localradio:client:closeAntennaUI',
+            src
         )
 
         ServerBridge.notify(
@@ -1249,11 +1307,7 @@ CreateThread(function()
 
         rebuildNetworks()
 
-        TriggerClientEvent(
-            'cb_localradio:client:syncNetworks',
-            -1,
-            buildNetworkPayload()
-        )
+        sendNetworkSync()
     end
 end)
 
@@ -1270,11 +1324,15 @@ CreateThread(function()
         Wait(60000)
 
         if Config.Antenna.degradation.enabled then
+
+            local changed = false
+
             for _, antenna in pairs(
                 RadioAntennas
             ) do
 
                 if antenna.state ~= 'broken' then
+
                     local row =
                         MySQL.single.await(
                             [[
@@ -1308,7 +1366,8 @@ CreateThread(function()
                         local cycles =
                             math.floor(
                                 minutes
-                                / Config.Antenna
+                                /
+                                Config.Antenna
                                     .degradation
                                     .intervalMinutes
                             )
@@ -1317,7 +1376,8 @@ CreateThread(function()
                             math.max(
                                 0,
                                 antenna.health
-                                - (
+                                -
+                                (
                                     Config.Antenna
                                         .degradation
                                         .amount
@@ -1345,18 +1405,17 @@ CreateThread(function()
                                 antenna.id
                             }
                         )
+
+                        changed = true
                     end
                 end
             end
 
-            rebuildNetworks()
-            broadcast()
-
-            TriggerClientEvent(
-                'cb_localradio:client:syncNetworks',
-                -1,
-                buildNetworkPayload()
-            )
+            if changed then
+                rebuildNetworks()
+                broadcast()
+                sendNetworkSync()
+            end
         end
     end
 end)
