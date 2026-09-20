@@ -607,7 +607,21 @@ Config.Locales = {
         antenna_remove_hint = 'Recover the installed antenna kit.',
 
         antenna_network_online = 'NETWORK ONLINE',
-        antenna_network_offline = 'NETWORK OFFLINE'
+        antenna_network_offline = 'NETWORK OFFLINE',
+
+        antenna_id = 'ANTENNA ID',
+        antenna_radius = 'COVERAGE RADIUS',
+        antenna_signal = 'NETWORK SIGNAL',
+        antenna_players = 'CONNECTED UNITS',
+        antenna_distance = 'DISTANCE',
+
+        antenna_repair_kit = 'REPAIR KIT',
+        antenna_metal = 'SCRAP METAL',
+        antenna_electronics = 'ELECTRONIC PARTS',
+        antenna_cable = 'RADIO CABLE',
+
+        antenna_terminal = 'ANTENNA TERMINAL',
+        antenna_secure = 'SECURE LOCAL NETWORK'
     },
 
     es = {
@@ -719,7 +733,21 @@ Config.Locales = {
         antenna_remove_hint = 'Recuperar el kit de antena instalado.',
 
         antenna_network_online = 'RED ACTIVA',
-        antenna_network_offline = 'RED INACTIVA'
+        antenna_network_offline = 'RED INACTIVA',
+
+        antenna_id = 'ID DE ANTENA',
+        antenna_radius = 'RADIO DE COBERTURA',
+        antenna_signal = 'SEÑAL DE RED',
+        antenna_players = 'UNIDADES CONECTADAS',
+        antenna_distance = 'DISTANCIA',
+
+        antenna_repair_kit = 'KIT DE REPARACIÓN',
+        antenna_metal = 'CHATARRA',
+        antenna_electronics = 'COMPONENTES ELECTRÓNICOS',
+        antenna_cable = 'CABLE DE RADIO',
+
+        antenna_terminal = 'TERMINAL DE ANTENA',
+        antenna_secure = 'RED LOCAL SEGURA'
     },
 
     tr = {
@@ -831,7 +859,21 @@ Config.Locales = {
         antenna_remove_hint = 'Kurulu anten kitini geri al.',
 
         antenna_network_online = 'AĞ AKTİF',
-        antenna_network_offline = 'AĞ KAPALI'
+        antenna_network_offline = 'AĞ KAPALI',
+
+        antenna_id = 'ANTEN KİMLİĞİ',
+        antenna_radius = 'KAPSAMA YARIÇAPI',
+        antenna_signal = 'AĞ SİNYALİ',
+        antenna_players = 'BAĞLI BİRİMLER',
+        antenna_distance = 'MESAFE',
+
+        antenna_repair_kit = 'ONARIM KİTİ',
+        antenna_metal = 'HURDA METAL',
+        antenna_electronics = 'ELEKTRONİK PARÇALAR',
+        antenna_cable = 'RADYO KABLOSU',
+
+        antenna_terminal = 'ANTEN TERMİNALİ',
+        antenna_secure = 'GÜVENLİ YEREL AĞ'
     },
 
     fr = {
@@ -943,7 +985,21 @@ Config.Locales = {
         antenna_remove_hint = 'Récupérer le kit d’antenne installé.',
 
         antenna_network_online = 'RÉSEAU ACTIF',
-        antenna_network_offline = 'RÉSEAU INACTIF'
+        antenna_network_offline = 'RÉSEAU INACTIF',
+
+        antenna_id = 'ID ANTENNE',
+        antenna_radius = 'RAYON DE COUVERTURE',
+        antenna_signal = 'SIGNAL RÉSEAU',
+        antenna_players = 'UNITÉS CONNECTÉES',
+        antenna_distance = 'DISTANCE',
+
+        antenna_repair_kit = 'KIT DE RÉPARATION',
+        antenna_metal = 'MÉTAL DE RÉCUPÉRATION',
+        antenna_electronics = 'COMPOSANTS ÉLECTRONIQUES',
+        antenna_cable = 'CÂBLE RADIO',
+
+        antenna_terminal = 'TERMINAL ANTENNE',
+        antenna_secure = 'RÉSEAU LOCAL SÉCURISÉ'
     }
 }
 
