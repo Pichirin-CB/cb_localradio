@@ -153,6 +153,73 @@ Config.Radio = {
 }
 
 -- ============================================================================
+-- PHYSICAL RADIO ANIMATION
+-- ============================================================================
+
+Config.RadioAnimation = {
+
+    -- Enable the physical radio prop and player animations.
+    enabled = true,
+
+    -- Radio prop.
+    prop = 'prop_cs_hand_radio',
+
+    -- Time used by the take-out animation.
+    openDuration = 650,
+
+    -- Time used by the put-away animation.
+    closeDuration = 650,
+
+    -- Radio held normally while the local radio UI is open.
+    idle = {
+
+        dict = 'cellphone@',
+        anim = 'cellphone_text_read_base',
+
+        flag = 49,
+
+        -- Right hand.
+        bone = 57005,
+
+        offset = vector3(
+            0.14,
+            0.005,
+            -0.02
+        ),
+
+        rotation = vector3(
+            110.0,
+            120.0,
+            -15.0
+        )
+    },
+
+    -- Radio position while transmitting.
+    talking = {
+
+        dict = 'random@arrests',
+        anim = 'generic_radio_chatter',
+
+        flag = 49,
+
+        -- Right hand / radio position used by radio animation setups.
+        bone = 28422,
+
+        offset = vector3(
+            0.0750,
+            0.0230,
+            -0.0230
+        ),
+
+        rotation = vector3(
+            -90.0,
+            0.0,
+            -59.9999
+        )
+    }
+}
+
+-- ============================================================================
 -- BLIPS
 -- ============================================================================
 

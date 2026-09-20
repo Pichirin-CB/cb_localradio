@@ -7,9 +7,484 @@ Radio = {
     signalNetwork = nil
 }
 
+-- ============================================================
+-- PHYSICAL RADIO / ANIMATION SYSTEM
+-- ============================================================
+
+local PhysicalRadio = {
+    prop = nil,
+
+    state = 'closed',
+    talking = false,
+
+    animation = {
+        idle = {
+            dict = 'cellphone@',
+            anim = 'cellphone_text_read_base',
+            flag = 49
+        },
+
+        talk = {
+            dict = 'random@arrests',
+            anim = 'generic_radio_chatter',
+            flag = 49
+        },
+
+        open = {
+            dict = 'cellphone@',
+            anim = 'cellphone_text_in',
+            flag = 49
+        },
+
+        close = {
+            dict = 'cellphone@',
+            anim = 'cellphone_text_out',
+            flag = 49
+        }
+    }
+}
+
 local function pma()
     return GetResourceState('pma-voice') == 'started'
 end
+
+local function loadAnimDict(dict)
+    if not dict then
+        return false
+    end
+
+    if HasAnimDictLoaded(dict) then
+        return true
+    end
+
+    RequestAnimDict(dict)
+
+    local timeout = GetGameTimer() + 5000
+
+    while not HasAnimDictLoaded(dict) do
+        Wait(0)
+
+        if GetGameTimer() > timeout then
+            return false
+        end
+    end
+
+    return true
+end
+
+local function loadModel(model)
+    local hash = joaat(model)
+
+    if HasModelLoaded(hash) then
+        return hash
+    end
+
+    RequestModel(hash)
+
+    local timeout = GetGameTimer() + 5000
+
+    while not HasModelLoaded(hash) do
+        Wait(0)
+
+        if GetGameTimer() > timeout then
+            return nil
+        end
+    end
+
+    return hash
+end
+
+local function deleteRadioProp()
+    if PhysicalRadio.prop
+        and DoesEntityExist(PhysicalRadio.prop) then
+
+        DetachEntity(
+            PhysicalRadio.prop,
+            true,
+            true
+        )
+
+        SetEntityAsMissionEntity(
+            PhysicalRadio.prop,
+            true,
+            true
+        )
+
+        DeleteEntity(
+            PhysicalRadio.prop
+        )
+    end
+
+    PhysicalRadio.prop = nil
+end
+
+local function attachRadioProp(mode)
+    if not Config.RadioAnimation.enabled then
+        return false
+    end
+
+    local ped = PlayerPedId()
+
+    if not DoesEntityExist(ped) then
+        return false
+    end
+
+    local bone
+    local offset
+    local rotation
+
+    if mode == 'talk' then
+
+        bone = Config.RadioAnimation.talking.bone
+
+        offset = Config.RadioAnimation.talking.offset
+
+        rotation = Config.RadioAnimation.talking.rotation
+
+    else
+
+        bone = Config.RadioAnimation.idle.bone
+
+        offset = Config.RadioAnimation.idle.offset
+
+        rotation = Config.RadioAnimation.idle.rotation
+    end
+
+    if not PhysicalRadio.prop
+        or not DoesEntityExist(
+            PhysicalRadio.prop
+        ) then
+
+        local model = loadModel(
+            Config.RadioAnimation.prop
+        )
+
+        if not model then
+            return false
+        end
+
+        PhysicalRadio.prop = CreateObject(
+            model,
+            0.0,
+            0.0,
+            0.0,
+            true,
+            true,
+            false
+        )
+
+        if not DoesEntityExist(
+            PhysicalRadio.prop
+        ) then
+
+            PhysicalRadio.prop = nil
+
+            return false
+        end
+
+        SetEntityCollision(
+            PhysicalRadio.prop,
+            false,
+            false
+        )
+
+        SetEntityCompletelyDisableCollision(
+            PhysicalRadio.prop,
+            true,
+            true
+        )
+
+        SetEntityAsMissionEntity(
+            PhysicalRadio.prop,
+            true,
+            true
+        )
+
+        SetModelAsNoLongerNeeded(model)
+    end
+
+    AttachEntityToEntity(
+        PhysicalRadio.prop,
+        ped,
+        GetPedBoneIndex(
+            ped,
+            bone
+        ),
+
+        offset.x,
+        offset.y,
+        offset.z,
+
+        rotation.x,
+        rotation.y,
+        rotation.z,
+
+        false,
+        false,
+        false,
+        false,
+        2,
+        true
+    )
+
+    return true
+end
+
+local function stopPhysicalAnimation()
+    local ped = PlayerPedId()
+
+    if DoesEntityExist(ped) then
+
+        for _, animation in pairs(
+            PhysicalRadio.animation
+        ) do
+
+            if animation.dict
+                and animation.anim
+                and HasAnimDictLoaded(
+                    animation.dict
+                ) then
+
+                StopAnimTask(
+                    ped,
+                    animation.dict,
+                    animation.anim,
+                    -4.0
+                )
+            end
+        end
+    end
+end
+
+local function playPhysicalAnimation(
+    animation,
+    restart
+)
+
+    local ped = PlayerPedId()
+
+    if not DoesEntityExist(ped) then
+        return false
+    end
+
+    if not loadAnimDict(
+        animation.dict
+    ) then
+
+        return false
+    end
+
+    if restart
+        or not IsEntityPlayingAnim(
+            ped,
+            animation.dict,
+            animation.anim,
+            3
+        ) then
+
+        TaskPlayAnim(
+            ped,
+            animation.dict,
+            animation.anim,
+            8.0,
+            -8.0,
+            -1,
+            animation.flag,
+            0.0,
+            false,
+            false,
+            false
+        )
+    end
+
+    return true
+end
+
+local function disablePmaRadioAnimation()
+    if not pma() then
+        return
+    end
+
+    pcall(function()
+        exports['pma-voice']:setDisableRadioAnim(true)
+    end)
+end
+
+local function enablePmaRadioAnimation()
+    if not pma() then
+        return
+    end
+
+    pcall(function()
+        exports['pma-voice']:setDisableRadioAnim(false)
+    end)
+end
+
+local function physicalRadioIdle()
+    if not Radio.open then
+        return
+    end
+
+    PhysicalRadio.talking = false
+    PhysicalRadio.state = 'idle'
+
+    stopPhysicalAnimation()
+
+    if attachRadioProp('idle') then
+        playPhysicalAnimation(
+            PhysicalRadio.animation.idle,
+            true
+        )
+    end
+end
+
+local function physicalRadioTalking()
+    if not Radio.open then
+        return
+    end
+
+    if not Config.RadioAnimation.enabled then
+        return
+    end
+
+    PhysicalRadio.talking = true
+    PhysicalRadio.state = 'talking'
+
+    stopPhysicalAnimation()
+
+    if attachRadioProp('talk') then
+        playPhysicalAnimation(
+            PhysicalRadio.animation.talk,
+            true
+        )
+    end
+end
+
+local function openPhysicalRadio()
+    if not Config.RadioAnimation.enabled then
+        return
+    end
+
+    if PhysicalRadio.state ~= 'closed' then
+        return
+    end
+
+    local ped = PlayerPedId()
+
+    if IsEntityDead(ped) then
+        return
+    end
+
+    disablePmaRadioAnimation()
+
+    PhysicalRadio.state = 'opening'
+    PhysicalRadio.talking = false
+
+    stopPhysicalAnimation()
+
+    attachRadioProp('idle')
+
+    playPhysicalAnimation(
+        PhysicalRadio.animation.open,
+        true
+    )
+
+    CreateThread(function()
+
+        Wait(
+            Config.RadioAnimation.openDuration
+        )
+
+        if not Radio.open then
+            return
+        end
+
+        if PhysicalRadio.talking then
+            physicalRadioTalking()
+        else
+            physicalRadioIdle()
+        end
+    end)
+end
+
+local function closePhysicalRadio()
+    if PhysicalRadio.state == 'closed' then
+        return
+    end
+
+    local ped = PlayerPedId()
+
+    PhysicalRadio.talking = false
+
+    if DoesEntityExist(ped)
+        and not IsEntityDead(ped)
+        and Config.RadioAnimation.enabled then
+
+        PhysicalRadio.state = 'closing'
+
+        stopPhysicalAnimation()
+
+        playPhysicalAnimation(
+            PhysicalRadio.animation.close,
+            true
+        )
+
+        CreateThread(function()
+
+            Wait(
+                Config.RadioAnimation.closeDuration
+            )
+
+            stopPhysicalAnimation()
+            deleteRadioProp()
+
+            PhysicalRadio.state = 'closed'
+
+            enablePmaRadioAnimation()
+        end)
+
+    else
+
+        stopPhysicalAnimation()
+        deleteRadioProp()
+
+        PhysicalRadio.state = 'closed'
+
+        enablePmaRadioAnimation()
+    end
+end
+
+-- ============================================================
+-- PMA-VOICE RADIO TALK STATE
+-- ============================================================
+
+RegisterNetEvent(
+    'pma-voice:radioActive',
+    function(active)
+
+        PhysicalRadio.talking = active == true
+
+        if not Radio.open then
+            return
+        end
+
+        if PhysicalRadio.state == 'closing'
+            or PhysicalRadio.state == 'closed' then
+
+            return
+        end
+
+        if PhysicalRadio.talking then
+            physicalRadioTalking()
+        else
+            physicalRadioIdle()
+        end
+    end
+)
+
+-- ============================================================
+-- UI
+-- ============================================================
 
 local function closeUI()
     Radio.open = false
@@ -19,6 +494,8 @@ local function closeUI()
     SendNUIMessage({
         action = 'close'
     })
+
+    closePhysicalRadio()
 end
 
 local function openUI()
@@ -40,10 +517,18 @@ local function openUI()
         locale = RadioUtils.getLocale(),
         translations = RadioUtils.localeTable()
     })
+
+    openPhysicalRadio()
 end
 
+-- ============================================================
+-- PMA CHANNEL
+-- ============================================================
+
 local function setPmaChannel(channel)
+
     if not pma() then
+
         Bridge.Notify(
             RadioUtils.locale(
                 'pma_not_started'
@@ -66,6 +551,7 @@ local function setPmaChannel(channel)
 end
 
 local function leaveChannel(silent)
+
     if pma() then
         exports['pma-voice']:setRadioChannel(0)
     end
@@ -85,6 +571,7 @@ local function leaveChannel(silent)
     })
 
     if not silent then
+
         Bridge.Notify(
             RadioUtils.locale('left'),
             'info'
@@ -93,6 +580,7 @@ local function leaveChannel(silent)
 end
 
 local function joinChannel(channel)
+
     channel = tonumber(channel)
 
     if not channel
@@ -161,7 +649,12 @@ local function joinChannel(channel)
     end
 end
 
+-- ============================================================
+-- SIGNAL
+-- ============================================================
+
 local function updateSignal()
+
     local coords = GetEntityCoords(
         PlayerPedId()
     )
@@ -187,6 +680,7 @@ local function updateSignal()
             )
 
             if d <= coverage.radius then
+
                 found = true
                 networkId = network.id
 
@@ -207,6 +701,7 @@ local function updateSignal()
     Radio.signalNetwork = networkId
 
     if changed then
+
         SendNUIMessage({
             action = 'signal',
 
@@ -231,6 +726,10 @@ local function updateSignal()
         )
     end
 end
+
+-- ============================================================
+-- OPEN RADIO EVENT
+-- ============================================================
 
 RegisterNetEvent(
     'cb_localradio:client:openRadio',
@@ -258,6 +757,10 @@ RegisterNetEvent(
         end
     end
 )
+
+-- ============================================================
+-- COMMAND
+-- ============================================================
 
 RegisterCommand(
     Config.Radio.command,
@@ -352,6 +855,7 @@ RegisterNUICallback(
         Radio.volume = volume
 
         if pma() then
+
             exports['pma-voice']:setRadioVolume(
                 volume
             )
@@ -390,6 +894,10 @@ RegisterNUICallback(
     end
 )
 
+-- ============================================================
+-- SERVER NOTIFICATIONS
+-- ============================================================
+
 RegisterNetEvent(
     'cb_localradio:client:notify',
     function(message, type)
@@ -402,7 +910,7 @@ RegisterNetEvent(
 )
 
 -- ============================================================
--- SIGNAL
+-- SIGNAL THREAD
 -- ============================================================
 
 CreateThread(function()
@@ -434,6 +942,8 @@ CreateThread(function()
 
         Wait(1000)
 
+        local ped = PlayerPedId()
+
         if Radio.on then
 
             if not Bridge.HasItem(
@@ -448,9 +958,7 @@ CreateThread(function()
                 end
             end
 
-            if IsEntityDead(
-                PlayerPedId()
-            ) then
+            if IsEntityDead(ped) then
 
                 leaveChannel(true)
 
@@ -472,15 +980,74 @@ CreateThread(function()
                 closeUI()
             end
 
-            if IsEntityDead(
-                PlayerPedId()
-            ) then
+            if IsEntityDead(ped) then
 
                 leaveChannel(true)
 
                 closeUI()
             end
         end
+    end
+end)
+
+-- ============================================================
+-- PHYSICAL RADIO SAFETY
+-- ============================================================
+
+CreateThread(function()
+
+    while true do
+
+        Wait(250)
+
+        if not Radio.open then
+            goto continue
+        end
+
+        local ped = PlayerPedId()
+
+        if IsEntityDead(ped) then
+
+            if PhysicalRadio.state ~= 'closed' then
+
+                stopPhysicalAnimation()
+                deleteRadioProp()
+
+                PhysicalRadio.state = 'closed'
+                PhysicalRadio.talking = false
+
+                enablePmaRadioAnimation()
+            end
+
+            goto continue
+        end
+
+        if PhysicalRadio.state == 'idle' then
+
+            if not IsEntityPlayingAnim(
+                ped,
+                PhysicalRadio.animation.idle.dict,
+                PhysicalRadio.animation.idle.anim,
+                3
+            ) then
+
+                physicalRadioIdle()
+            end
+
+        elseif PhysicalRadio.state == 'talking' then
+
+            if not IsEntityPlayingAnim(
+                ped,
+                PhysicalRadio.animation.talk.dict,
+                PhysicalRadio.animation.talk.anim,
+                3
+            ) then
+
+                physicalRadioTalking()
+            end
+        end
+
+        ::continue::
     end
 end)
 
@@ -496,7 +1063,18 @@ AddEventHandler(
             return
         end
 
+        stopPhysicalAnimation()
+        deleteRadioProp()
+
+        PhysicalRadio.state = 'closed'
+        PhysicalRadio.talking = false
+
         if pma() then
+
+            pcall(function()
+                exports['pma-voice']:setDisableRadioAnim(false)
+            end)
+
             exports['pma-voice']:setRadioChannel(0)
         end
     end
