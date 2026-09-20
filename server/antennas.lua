@@ -573,7 +573,9 @@ RegisterNetEvent(
 
             ServerBridge.notify(
                 src,
-                'La antena no necesita mantenimiento todavia.',
+                RadioUtils.locale(
+                    'antenna_no_maintenance'
+                ),
                 'info'
             )
 

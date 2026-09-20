@@ -28,24 +28,33 @@ local function openUI()
 
     SendNUIMessage({
         action = 'open',
+
         frequency = Radio.frequency,
         volume = Radio.volume,
         signal = Radio.hasSignal,
-        maxFrequency = Config.Radio.maxFrequency
+
+        maxFrequency = Config.Radio.maxFrequency,
+
+        locale = RadioUtils.getLocale(),
+        translations = RadioUtils.localeTable()
     })
 end
 
 local function setPmaChannel(channel)
     if not pma() then
         Bridge.Notify(
-            'pma-voice no esta iniciado.',
+            RadioUtils.locale(
+                'pma_not_started'
+            ),
             'error'
         )
 
         return false
     end
 
-    exports['pma-voice']:setRadioChannel(channel)
+    exports['pma-voice']:setRadioChannel(
+        channel
+    )
 
     exports['pma-voice']:setRadioVolume(
         Radio.volume
@@ -64,6 +73,7 @@ local function leaveChannel(silent)
 
     SendNUIMessage({
         action = 'state',
+
         frequency = 0,
         signal = Radio.hasSignal,
         volume = Radio.volume
@@ -71,7 +81,7 @@ local function leaveChannel(silent)
 
     if not silent then
         Bridge.Notify(
-            Config.Messages.left,
+            RadioUtils.locale('left'),
             'info'
         )
     end
@@ -85,7 +95,9 @@ local function joinChannel(channel)
         or channel > Config.Radio.maxFrequency then
 
         Bridge.Notify(
-            Config.Messages.invalidFrequency,
+            RadioUtils.locale(
+                'invalid_frequency'
+            ),
             'error'
         )
 
@@ -96,7 +108,9 @@ local function joinChannel(channel)
         and not Radio.hasSignal then
 
         Bridge.Notify(
-            Config.Messages.noSignal,
+            RadioUtils.locale(
+                'no_radio_signal'
+            ),
             'error'
         )
 
@@ -107,7 +121,9 @@ local function joinChannel(channel)
         and Radio.frequency == channel then
 
         Bridge.Notify(
-            Config.Messages.alreadyRadio,
+            RadioUtils.locale(
+                'already_radio'
+            ),
             'error'
         )
 
@@ -121,13 +137,17 @@ local function joinChannel(channel)
 
         SendNUIMessage({
             action = 'state',
+
             frequency = channel,
             signal = Radio.hasSignal,
             volume = Radio.volume
         })
 
         Bridge.Notify(
-            Config.Messages.joined:format(channel),
+            RadioUtils.locale(
+                'joined',
+                channel
+            ),
             'success'
         )
     end
@@ -161,6 +181,7 @@ local function updateSignal()
             if d <= coverage.radius then
                 found = true
                 networkId = network.id
+
                 break
             end
         end
@@ -178,13 +199,12 @@ local function updateSignal()
     Radio.signalNetwork = networkId
 
     if changed then
-
         SendNUIMessage({
             action = 'signal',
+
             signal = found,
             frequency = Radio.frequency
         })
-
     end
 
     if Radio.on
@@ -194,7 +214,9 @@ local function updateSignal()
         leaveChannel(true)
 
         Bridge.Notify(
-            Config.Messages.outOfCoverage,
+            RadioUtils.locale(
+                'out_of_coverage'
+            ),
             'error'
         )
     end
@@ -210,7 +232,9 @@ RegisterNetEvent(
         ) then
 
             Bridge.Notify(
-                Config.Messages.noRadio,
+                RadioUtils.locale(
+                    'no_radio'
+                ),
                 'error'
             )
 
@@ -239,7 +263,9 @@ RegisterCommand(
         ) then
 
             Bridge.Notify(
-                Config.Messages.noRadio,
+                RadioUtils.locale(
+                    'no_radio'
+                ),
                 'error'
             )
 
@@ -257,7 +283,9 @@ RegisterCommand(
 
 RegisterKeyMapping(
     Config.Radio.command,
-    'Abrir radio local',
+    RadioUtils.locale(
+        'radio_open'
+    ),
     'keyboard',
     Config.Radio.key
 )
@@ -314,11 +342,9 @@ RegisterNUICallback(
         Radio.volume = volume
 
         if pma() then
-
             exports['pma-voice']:setRadioVolume(
                 volume
             )
-
         end
 
         cb('ok')
@@ -344,9 +370,11 @@ RegisterNUICallback(
         cb({
             frequency = Radio.frequency,
             volume = Radio.volume,
-            signal = Radio.hasSignal
-        })
+            signal = Radio.hasSignal,
 
+            locale = RadioUtils.getLocale(),
+            translations = RadioUtils.localeTable()
+        })
     end
 )
 
@@ -358,7 +386,6 @@ RegisterNetEvent(
             message,
             type
         )
-
     end
 )
 

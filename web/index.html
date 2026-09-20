@@ -1,43 +1,81 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
     <title>CB Local Radio</title>
-    <link rel="stylesheet" href="style.css">
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
 </head>
 
 <body>
-    <main id="radio" class="hidden" aria-hidden="true">
-        <section class="device" role="dialog" aria-label="CB Local Radio">
+    <main
+        id="radio"
+        class="hidden"
+        aria-hidden="true"
+    >
+        <section
+            class="device"
+            role="dialog"
+            aria-label="CB Local Radio"
+        >
 
             <div class="device-frame">
 
                 <header class="top">
+
                     <div class="brand-block">
+
                         <div class="brand">
                             <span class="brand-mark">CB</span>
-                            <span class="brand-name">LOCAL RADIO</span>
+
+                            <span
+                                class="brand-name"
+                                data-i18n="brand"
+                            >
+                                LOCAL RADIO
+                            </span>
                         </div>
 
-                        <div class="device-subtitle">
+                        <div
+                            class="device-subtitle"
+                            data-i18n="subtitle"
+                        >
                             SURVIVAL COMMUNICATION UNIT
                         </div>
+
                     </div>
 
                     <div class="top-status">
-                        <span class="power-label">PWR</span>
+
+                        <span
+                            class="power-label"
+                            data-i18n="power"
+                        >
+                            PWR
+                        </span>
+
                         <span class="power-led"></span>
 
                         <button
                             id="close"
                             class="close-button"
                             type="button"
-                            aria-label="Cerrar radio"
+                            data-i18n-aria="close_radio"
+                            aria-label="Close radio"
                         >
                             ×
                         </button>
+
                     </div>
+
                 </header>
 
                 <div class="header-rule"></div>
@@ -48,27 +86,57 @@
                     <div class="screen-scanline"></div>
 
                     <div class="screen-topline">
+
                         <div class="status">
-                            <span id="led" class="signal-led"></span>
+
+                            <span
+                                id="led"
+                                class="signal-led"
+                            ></span>
 
                             <span class="status-copy">
-                                <span class="status-label">SIGNAL</span>
-                                <span id="signalText">SIN SEÑAL</span>
+
+                                <span
+                                    class="status-label"
+                                    data-i18n="signal"
+                                >
+                                    SIGNAL
+                                </span>
+
+                                <span
+                                    id="signalText"
+                                    data-i18n="signal_none"
+                                >
+                                    NO SIGNAL
+                                </span>
+
                             </span>
+
                         </div>
 
-                        <div class="screen-mode">
+                        <div
+                            class="screen-mode"
+                            data-i18n="local_mode"
+                        >
                             LOCAL
                         </div>
+
                     </div>
 
                     <div class="frequency-block">
-                        <div class="frequency-caption">
+
+                        <div
+                            class="frequency-caption"
+                            data-i18n="active_frequency"
+                        >
                             ACTIVE FREQUENCY
                         </div>
 
                         <div class="frequency-row">
-                            <span class="frequency-prefix">CH</span>
+
+                            <span class="frequency-prefix">
+                                CH
+                            </span>
 
                             <div id="frequency">
                                 000.0
@@ -77,26 +145,48 @@
                             <span class="frequency-unit">
                                 MHz
                             </span>
+
                         </div>
+
                     </div>
 
                     <div class="screen-divider"></div>
 
                     <div class="network">
+
                         <div class="network-label">
+
                             <span class="network-dot"></span>
-                            <span>NETWORK</span>
+
+                            <span data-i18n="network">
+                                NETWORK
+                            </span>
+
                         </div>
 
-                        <strong id="networkState">
-                            DESCONECTADA
+                        <strong
+                            id="networkState"
+                            data-i18n="disconnected"
+                        >
+                            DISCONNECTED
                         </strong>
+
                     </div>
 
                     <div class="screen-footer">
-                        <span>CB-SURV</span>
-                        <span>FIELD RADIO</span>
-                        <span>01</span>
+
+                        <span data-i18n="cb_surv">
+                            CB-SURV
+                        </span>
+
+                        <span data-i18n="field_radio">
+                            FIELD RADIO
+                        </span>
+
+                        <span>
+                            01
+                        </span>
+
                     </div>
 
                 </section>
@@ -107,30 +197,60 @@
                         id="down"
                         class="frequency-button"
                         type="button"
-                        aria-label="Disminuir frecuencia"
+                        data-i18n-aria="decrease_frequency"
+                        aria-label="Decrease frequency"
                     >
-                        <span class="button-symbol">−</span>
-                        <span class="button-caption">DOWN</span>
+                        <span class="button-symbol">
+                            −
+                        </span>
+
+                        <span
+                            class="button-caption"
+                            data-i18n="down"
+                        >
+                            DOWN
+                        </span>
                     </button>
 
                     <button
                         id="channel"
                         class="frequency-display-button"
                         type="button"
-                        aria-label="Establecer frecuencia"
+                        data-i18n-aria="set_frequency"
+                        aria-label="Set frequency"
                     >
-                        <span class="control-label">FREQUENCY</span>
-                        <span class="control-hint">SELECT CHANNEL</span>
+                        <span
+                            class="control-label"
+                            data-i18n="frequency"
+                        >
+                            FREQUENCY
+                        </span>
+
+                        <span
+                            class="control-hint"
+                            data-i18n="select_channel"
+                        >
+                            SELECT CHANNEL
+                        </span>
                     </button>
 
                     <button
                         id="up"
                         class="frequency-button"
                         type="button"
-                        aria-label="Aumentar frecuencia"
+                        data-i18n-aria="increase_frequency"
+                        aria-label="Increase frequency"
                     >
-                        <span class="button-symbol">+</span>
-                        <span class="button-caption">UP</span>
+                        <span class="button-symbol">
+                            +
+                        </span>
+
+                        <span
+                            class="button-caption"
+                            data-i18n="up"
+                        >
+                            UP
+                        </span>
                     </button>
 
                 </section>
@@ -138,18 +258,39 @@
                 <section class="volume-panel">
 
                     <div class="section-heading">
+
                         <div>
-                            <span class="section-kicker">AUDIO CONTROL</span>
-                            <span class="section-title">VOLUME</span>
+
+                            <span
+                                class="section-kicker"
+                                data-i18n="audio_control"
+                            >
+                                AUDIO CONTROL
+                            </span>
+
+                            <span
+                                class="section-title"
+                                data-i18n="volume"
+                            >
+                                VOLUME
+                            </span>
+
                         </div>
 
                         <strong id="volumeValue">
                             50%
                         </strong>
+
                     </div>
 
                     <div class="volume-track-wrapper">
-                        <span class="volume-mark">MIN</span>
+
+                        <span
+                            class="volume-mark"
+                            data-i18n="min"
+                        >
+                            MIN
+                        </span>
 
                         <input
                             id="volume"
@@ -157,14 +298,23 @@
                             min="0"
                             max="100"
                             value="50"
-                            aria-label="Volumen"
+                            data-i18n-aria="volume_label"
+                            aria-label="Volume"
                         >
 
-                        <span class="volume-mark">MAX</span>
+                        <span
+                            class="volume-mark"
+                            data-i18n="max"
+                        >
+                            MAX
+                        </span>
+
                     </div>
 
-                    <div class="volume-scale" aria-hidden="true">
-                        <span></span>
+                    <div
+                        class="volume-scale"
+                        aria-hidden="true"
+                    >
                         <span></span>
                         <span></span>
                         <span></span>
@@ -199,9 +349,17 @@
                         <span class="action-indicator"></span>
 
                         <span class="action-copy">
-                            <strong>CONNECT</strong>
-                            <small>JOIN FREQUENCY</small>
+
+                            <strong data-i18n="connect">
+                                CONNECT
+                            </strong>
+
+                            <small data-i18n="join_frequency">
+                                JOIN FREQUENCY
+                            </small>
+
                         </span>
+
                     </button>
 
                     <button
@@ -212,26 +370,45 @@
                         <span class="action-indicator"></span>
 
                         <span class="action-copy">
-                            <strong>DISCONNECT</strong>
-                            <small>LEAVE NETWORK</small>
+
+                            <strong data-i18n="disconnect">
+                                DISCONNECT
+                            </strong>
+
+                            <small data-i18n="leave_network">
+                                LEAVE NETWORK
+                            </small>
+
                         </span>
+
                     </button>
 
                 </section>
 
                 <footer class="hint">
+
                     <span>ESC</span>
-                    CLOSE
+
+                    <span data-i18n="close">
+                        CLOSE
+                    </span>
 
                     <i></i>
 
                     <span>↑ ↓</span>
-                    CHANGE FREQUENCY
+
+                    <span data-i18n="change_frequency">
+                        CHANGE FREQUENCY
+                    </span>
 
                     <i></i>
 
                     <span>WHEEL</span>
-                    TUNE
+
+                    <span data-i18n="tune">
+                        TUNE
+                    </span>
+
                 </footer>
 
             </div>
