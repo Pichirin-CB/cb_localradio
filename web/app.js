@@ -43,6 +43,31 @@ let dragOffsetY = 0;
    ANTENNA TERMINAL
 ============================================================ */
 
+const antennaWindow = document.querySelector(
+    '.antenna-terminal'
+);
+
+const antennaDragHandle = document.querySelector(
+    '.antenna-header'
+);
+
+const ANTENNA_POSITION_KEY =
+    'cb_localradio_antenna_position';
+
+const DEFAULT_ANTENNA_POSITION = {
+    centered: true
+};
+
+const antennaPosition = {
+    x: null,
+    y: null
+};
+
+let antennaDragging = false;
+let antennaDragPointerId = null;
+let antennaDragOffsetX = 0;
+let antennaDragOffsetY = 0;
+
 let antennaTerminalOpen = false;
 let currentAntenna = null;
 let currentAntennaId = null;
@@ -65,7 +90,145 @@ function post(event, data = {}) {
     );
 }
 
+/* ============================================================
+   TRANSLATIONS
+============================================================ */
+
+const TRANSLATION_ALIASES = {
+    antenna_terminal_title: 'antenna_ui_title',
+    antenna_terminal_subtitle: 'antenna_ui_subtitle',
+
+    antenna_status: 'antenna_state',
+    antenna_integrity: 'antenna_health',
+
+    antenna_type_world: 'antenna_world',
+    antenna_type_player: 'antenna_player',
+
+    antenna_state_active: 'antenna_active',
+    antenna_state_maintenance: 'antenna_maintenance_state',
+    antenna_state_broken: 'antenna_broken_state',
+    antenna_state_offline: 'antenna_network_offline',
+
+    close_antenna: 'antenna_close',
+
+    antenna_repair_kit: 'antenna_repair',
+
+    antenna_resources: 'antenna_materials',
+
+    antenna_repair_description:
+        'antenna_repair_hint',
+
+    antenna_maintenance_description:
+        'antenna_maintenance_hint',
+
+    antenna_remove_description:
+        'antenna_remove_hint'
+};
+
+const TRANSLATION_DEFAULTS = {
+    antenna_id: {
+        es: 'ID DE ANTENA',
+        en: 'ANTENNA ID',
+        tr: 'ANTEN KİMLİĞİ',
+        fr: 'ID ANTENNE'
+    },
+
+    antenna_radius: {
+        es: 'RADIO DE COBERTURA',
+        en: 'COVERAGE RADIUS',
+        tr: 'KAPSAMA ALANI',
+        fr: 'RAYON DE COUVERTURE'
+    },
+
+    antenna_signal: {
+        es: 'SEÑAL DE RED',
+        en: 'NETWORK SIGNAL',
+        tr: 'AĞ SİNYALİ',
+        fr: 'SIGNAL RÉSEAU'
+    },
+
+    antenna_players: {
+        es: 'UNIDADES CONECTADAS',
+        en: 'CONNECTED UNITS',
+        tr: 'BAĞLI BİRİMLER',
+        fr: 'UNITÉS CONNECTÉES'
+    },
+
+    antenna_distance: {
+        es: 'DISTANCIA',
+        en: 'DISTANCE',
+        tr: 'MESAFE',
+        fr: 'DISTANCE'
+    },
+
+    antenna_metal: {
+        es: 'CHATARRA',
+        en: 'SCRAP METAL',
+        tr: 'HURDA METAL',
+        fr: 'MÉTAL DE RÉCUPÉRATION'
+    },
+
+    antenna_electronics: {
+        es: 'COMPONENTES ELECTRÓNICOS',
+        en: 'ELECTRONIC PARTS',
+        tr: 'ELEKTRONİK PARÇALAR',
+        fr: 'COMPOSANTS ÉLECTRONIQUES'
+    },
+
+    antenna_cable: {
+        es: 'CABLE',
+        en: 'CABLE',
+        tr: 'KABLO',
+        fr: 'CÂBLE'
+    },
+
+    antenna_processing: {
+        es: 'PROCESANDO',
+        en: 'PROCESSING',
+        tr: 'İŞLENİYOR',
+        fr: 'TRAITEMENT'
+    },
+
+    antenna_please_wait: {
+        es: 'ESPERA MIENTRAS SE COMPLETA LA OPERACIÓN',
+        en: 'PLEASE WAIT FOR THE OPERATION TO COMPLETE',
+        tr: 'İŞLEM TAMAMLANANA KADAR BEKLEYİN',
+        fr: 'VEUILLEZ ATTENDRE LA FIN DE L’OPÉRATION'
+    },
+
+    antenna_operation_complete: {
+        es: 'OPERACIÓN COMPLETADA',
+        en: 'OPERATION COMPLETE',
+        tr: 'İŞLEM TAMAMLANDI',
+        fr: 'OPÉRATION TERMINÉE'
+    },
+
+    antenna_system: {
+        es: 'SISTEMA',
+        en: 'SYSTEM',
+        tr: 'SİSTEM',
+        fr: 'SYSTÈME'
+    },
+
+    antenna_no_materials: {
+        es: 'SIN MATERIALES',
+        en: 'NO MATERIALS',
+        tr: 'MALZEME YOK',
+        fr: 'AUCUN MATÉRIAU'
+    },
+
+    antenna_no_cost: {
+        es: 'NO REQUERIDO',
+        en: 'NOT REQUIRED',
+        tr: 'GEREKLİ DEĞİL',
+        fr: 'NON REQUIS'
+    }
+};
+
 function translate(key) {
+    const aliasKey =
+        TRANSLATION_ALIASES[key];
+
     if (
         translations &&
         Object.prototype.hasOwnProperty.call(
@@ -74,6 +237,28 @@ function translate(key) {
         )
     ) {
         return translations[key];
+    }
+
+    if (
+        aliasKey &&
+        translations &&
+        Object.prototype.hasOwnProperty.call(
+            translations,
+            aliasKey
+        )
+    ) {
+        return translations[aliasKey];
+    }
+
+    const defaults =
+        TRANSLATION_DEFAULTS[key];
+
+    if (defaults) {
+        return (
+            defaults[locale] ||
+            defaults.en ||
+            key
+        );
     }
 
     return key;
@@ -98,20 +283,24 @@ function applyLocale(data = {}) {
         translations = data.translations;
     }
 
-    document.documentElement.lang = locale;
+    document.documentElement.lang =
+        locale;
 
     document
         .querySelectorAll('[data-i18n]')
         .forEach(element => {
-            const key = element.dataset.i18n;
+            const key =
+                element.dataset.i18n;
 
-            element.textContent = translate(key);
+            element.textContent =
+                translate(key);
         });
 
     document
         .querySelectorAll('[data-i18n-aria]')
         .forEach(element => {
-            const key = element.dataset.i18nAria;
+            const key =
+                element.dataset.i18nAria;
 
             element.setAttribute(
                 'aria-label',
@@ -125,7 +314,8 @@ function applyLocale(data = {}) {
 ============================================================ */
 
 function renderSignal(signal) {
-    currentSignal = Boolean(signal);
+    currentSignal =
+        Boolean(signal);
 
     if (!led || !signalText) {
         return;
@@ -144,8 +334,11 @@ function renderSignal(signal) {
     }
 }
 
-function renderConnection(connected) {
-    currentConnected = Boolean(connected);
+function renderConnection(
+    connected
+) {
+    currentConnected =
+        Boolean(connected);
 
     if (!networkState) {
         return;
@@ -183,16 +376,18 @@ function renderFrequency(value) {
 }
 
 function renderVolume(value) {
-    const numeric = Math.max(
-        0,
-        Math.min(
-            100,
-            Number(value) || 0
-        )
-    );
+    const numeric =
+        Math.max(
+            0,
+            Math.min(
+                100,
+                Number(value) || 0
+            )
+        );
 
     if (volume) {
-        volume.value = numeric;
+        volume.value =
+            numeric;
     }
 
     if (volumeValue) {
@@ -208,7 +403,8 @@ function changeFrequency(delta) {
     value += delta;
 
     if (value < 1) {
-        value = maxFrequency;
+        value =
+            maxFrequency;
     }
 
     if (value > maxFrequency) {
@@ -564,10 +760,348 @@ function stopDrag(event) {
 }
 
 /* ============================================================
+   ANTENNA WINDOW POSITION
+============================================================ */
+
+function loadAntennaPosition() {
+    try {
+        const saved =
+            localStorage.getItem(
+                ANTENNA_POSITION_KEY
+            );
+
+        if (!saved) {
+            return;
+        }
+
+        const parsed =
+            JSON.parse(saved);
+
+        if (
+            typeof parsed.x === 'number' &&
+            typeof parsed.y === 'number'
+        ) {
+            antennaPosition.x =
+                parsed.x;
+
+            antennaPosition.y =
+                parsed.y;
+        }
+    } catch (error) {
+        antennaPosition.x = null;
+        antennaPosition.y = null;
+    }
+}
+
+function saveAntennaPosition() {
+    if (
+        typeof antennaPosition.x !==
+            'number' ||
+        typeof antennaPosition.y !==
+            'number'
+    ) {
+        return;
+    }
+
+    try {
+        localStorage.setItem(
+            ANTENNA_POSITION_KEY,
+            JSON.stringify({
+                x:
+                    antennaPosition.x,
+
+                y:
+                    antennaPosition.y
+            })
+        );
+    } catch (error) {
+        // Ignorar errores de almacenamiento.
+    }
+}
+
+function clampAntennaPosition(
+    x,
+    y
+) {
+    if (!antennaWindow) {
+        return {
+            x,
+            y
+        };
+    }
+
+    const margin = 10;
+
+    const width =
+        antennaWindow.offsetWidth;
+
+    const height =
+        antennaWindow.offsetHeight;
+
+    const maxX =
+        Math.max(
+            margin,
+            window.innerWidth -
+                width -
+                margin
+        );
+
+    const maxY =
+        Math.max(
+            margin,
+            window.innerHeight -
+                height -
+                margin
+        );
+
+    return {
+        x: Math.max(
+            margin,
+            Math.min(
+                maxX,
+                x
+            )
+        ),
+
+        y: Math.max(
+            margin,
+            Math.min(
+                maxY,
+                y
+            )
+        )
+    };
+}
+
+function applyAntennaPosition() {
+    if (!antennaWindow) {
+        return;
+    }
+
+    if (
+        typeof antennaPosition.x !==
+            'number' ||
+        typeof antennaPosition.y !==
+            'number'
+    ) {
+        antennaWindow.style.left =
+            '50%';
+
+        antennaWindow.style.top =
+            '50%';
+
+        antennaWindow.style.transform =
+            'translate(-50%, -50%)';
+
+        return;
+    }
+
+    const position =
+        clampAntennaPosition(
+            antennaPosition.x,
+            antennaPosition.y
+        );
+
+    antennaPosition.x =
+        position.x;
+
+    antennaPosition.y =
+        position.y;
+
+    antennaWindow.style.left =
+        `${position.x}px`;
+
+    antennaWindow.style.top =
+        `${position.y}px`;
+
+    antennaWindow.style.transform =
+        'none';
+}
+
+function centerAntennaPosition() {
+    if (!antennaWindow) {
+        return;
+    }
+
+    const x =
+        Math.max(
+            10,
+            (
+                window.innerWidth -
+                antennaWindow.offsetWidth
+            ) / 2
+        );
+
+    const y =
+        Math.max(
+            10,
+            (
+                window.innerHeight -
+                antennaWindow.offsetHeight
+            ) / 2
+        );
+
+    antennaPosition.x =
+        x;
+
+    antennaPosition.y =
+        y;
+
+    applyAntennaPosition();
+    saveAntennaPosition();
+}
+
+function startAntennaDrag(
+    event
+) {
+    if (
+        !antennaWindow ||
+        !antennaDragHandle
+    ) {
+        return;
+    }
+
+    if (
+        event.button !== undefined &&
+        event.button !== 0
+    ) {
+        return;
+    }
+
+    if (
+        event.target.closest(
+            'button, input, a'
+        )
+    ) {
+        return;
+    }
+
+    const rect =
+        antennaWindow.getBoundingClientRect();
+
+    antennaDragging = true;
+
+    antennaDragPointerId =
+        event.pointerId;
+
+    antennaDragOffsetX =
+        event.clientX -
+        rect.left;
+
+    antennaDragOffsetY =
+        event.clientY -
+        rect.top;
+
+    antennaWindow.classList.add(
+        'dragging'
+    );
+
+    antennaDragHandle.classList.add(
+        'dragging'
+    );
+
+    antennaDragHandle.setPointerCapture(
+        event.pointerId
+    );
+
+    event.preventDefault();
+}
+
+function moveAntennaDrag(
+    event
+) {
+    if (
+        !antennaDragging ||
+        event.pointerId !==
+            antennaDragPointerId ||
+        !antennaWindow
+    ) {
+        return;
+    }
+
+    const position =
+        clampAntennaPosition(
+            event.clientX -
+                antennaDragOffsetX,
+
+            event.clientY -
+                antennaDragOffsetY
+        );
+
+    antennaPosition.x =
+        position.x;
+
+    antennaPosition.y =
+        position.y;
+
+    antennaWindow.style.left =
+        `${position.x}px`;
+
+    antennaWindow.style.top =
+        `${position.y}px`;
+
+    antennaWindow.style.transform =
+        'none';
+
+    event.preventDefault();
+}
+
+function stopAntennaDrag(
+    event
+) {
+    if (
+        !antennaDragging ||
+        (
+            event.pointerId !== undefined &&
+            event.pointerId !==
+                antennaDragPointerId
+        )
+    ) {
+        return;
+    }
+
+    antennaDragging = false;
+
+    if (antennaWindow) {
+        antennaWindow.classList.remove(
+            'dragging'
+        );
+    }
+
+    if (antennaDragHandle) {
+        antennaDragHandle.classList.remove(
+            'dragging'
+        );
+    }
+
+    try {
+        if (
+            antennaDragHandle &&
+            antennaDragHandle.hasPointerCapture(
+                antennaDragPointerId
+            )
+        ) {
+            antennaDragHandle.releasePointerCapture(
+                antennaDragPointerId
+            );
+        }
+    } catch (error) {
+        // Ignorar errores de pointer capture.
+    }
+
+    antennaDragPointerId =
+        null;
+
+    saveAntennaPosition();
+}
+
+/* ============================================================
    ANTENNA HELPERS
 ============================================================ */
 
-function antennaStateLabel(state) {
+function antennaStateLabel(
+    state
+) {
     switch (state) {
         case 'active':
             return translate(
@@ -591,7 +1125,9 @@ function antennaStateLabel(state) {
     }
 }
 
-function antennaTypeLabel(type) {
+function antennaTypeLabel(
+    type
+) {
     if (type === 'world') {
         return translate(
             'antenna_type_world'
@@ -779,9 +1315,13 @@ function renderAntennaState(
 
     if (networkState) {
         networkState.textContent =
-            antennaStateLabel(
-                state
-            );
+            state === 'active'
+                ? translate(
+                    'antenna_network_online'
+                )
+                : translate(
+                    'antenna_network_offline'
+                );
     }
 
     renderAntennaHealth(
@@ -897,7 +1437,8 @@ function renderMaterials(
         );
     }
 
-    const unique = new Map();
+    const unique =
+        new Map();
 
     costs.forEach(cost => {
         const key =
@@ -943,7 +1484,6 @@ function renderMaterials(
 
     unique.forEach(
         material => {
-
             const row =
                 document.createElement(
                     'div'
@@ -1175,6 +1715,12 @@ function openAntennaTerminal(
         '',
         false
     );
+
+    requestAnimationFrame(
+        () => {
+            applyAntennaPosition();
+        }
+    );
 }
 
 function closeAntennaTerminal(
@@ -1274,19 +1820,17 @@ function requestAntennaOperation(
         return;
     }
 
-    const callbackName =
-        callback;
-
-    if (!callbackName) {
+    if (!callback) {
         return;
     }
 
     setAntennaBusy(true);
 
     post(
-        callbackName,
+        callback,
         {
-            id: currentAntennaId
+            id:
+                currentAntennaId
         }
     ).catch(() => {
         setAntennaBusy(false);
@@ -1298,12 +1842,22 @@ function requestAntennaOperation(
 ============================================================ */
 
 loadPosition();
+loadAntennaPosition();
 
 window.addEventListener(
     'resize',
     () => {
         applyPosition();
         savePosition();
+
+        applyAntennaPosition();
+
+        if (
+            antennaPosition.x !== null &&
+            antennaPosition.y !== null
+        ) {
+            saveAntennaPosition();
+        }
     }
 );
 
@@ -1331,7 +1885,6 @@ if (dragHandle) {
     dragHandle.addEventListener(
         'dblclick',
         event => {
-
             if (
                 event.target.closest(
                     'button, input, a'
@@ -1341,6 +1894,43 @@ if (dragHandle) {
             }
 
             centerPosition();
+        }
+    );
+}
+
+if (antennaDragHandle) {
+    antennaDragHandle.addEventListener(
+        'pointerdown',
+        startAntennaDrag
+    );
+
+    antennaDragHandle.addEventListener(
+        'pointermove',
+        moveAntennaDrag
+    );
+
+    antennaDragHandle.addEventListener(
+        'pointerup',
+        stopAntennaDrag
+    );
+
+    antennaDragHandle.addEventListener(
+        'pointercancel',
+        stopAntennaDrag
+    );
+
+    antennaDragHandle.addEventListener(
+        'dblclick',
+        event => {
+            if (
+                event.target.closest(
+                    'button, input, a'
+                )
+            ) {
+                return;
+            }
+
+            centerAntennaPosition();
         }
     );
 }
@@ -1419,7 +2009,6 @@ if (volume) {
     volume.addEventListener(
         'input',
         () => {
-
             if (volumeValue) {
                 volumeValue.textContent =
                     `${volume.value}%`;
@@ -1534,7 +2123,6 @@ if (antennaRemove) {
 document.addEventListener(
     'keydown',
     event => {
-
         if (
             antennaTerminalOpen &&
             event.key === 'Escape'
@@ -1593,7 +2181,6 @@ document.addEventListener(
 window.addEventListener(
     'message',
     event => {
-
         const data =
             event.data || {};
 
@@ -1761,7 +2348,9 @@ window.addEventListener(
 
         if (
             data.action ===
-                'antennaOpen'
+                'antennaOpen' ||
+            data.action ===
+                'openAntenna'
         ) {
             openAntennaTerminal(
                 data
