@@ -67,7 +67,7 @@ button {
 }
 
 /* ==================================================
-   ROOT
+   RADIO ROOT
 ================================================== */
 
 #radio {
@@ -97,7 +97,7 @@ button {
 }
 
 /* ==================================================
-   DEVICE
+   RADIO DEVICE
 ================================================== */
 
 .device {
@@ -369,7 +369,7 @@ button {
 }
 
 /* ==================================================
-   SCREEN
+   RADIO SCREEN
 ================================================== */
 
 .screen {
@@ -714,12 +714,6 @@ button {
     color:
         var(--radio-muted);
 }
-
-/*
- * The HTML places .network-dot before
- * #networkState, therefore :has() is used
- * to reflect the connection state on the LED.
- */
 
 .network:has(
     #networkState.connected
@@ -1089,7 +1083,7 @@ button {
 }
 
 /* ==================================================
-   ACTIONS
+   RADIO ACTIONS
 ================================================== */
 
 .actions {
@@ -1259,7 +1253,7 @@ button {
 }
 
 /* ==================================================
-   FOOTER
+   RADIO FOOTER
 ================================================== */
 
 .hint {
@@ -1310,10 +1304,1507 @@ button {
 }
 
 /* ==================================================
-   ANIMATIONS
+   ANTENNA TERMINAL ROOT
 ================================================== */
 
-@keyframes radio-root-in {
+#antennaTerminal {
+    position: fixed;
+
+    inset: 0;
+
+    width: 100vw;
+    height: 100vh;
+
+    display: block;
+
+    padding: 0;
+
+    background:
+        radial-gradient(
+            circle at center,
+            rgba(0, 0, 0, 0.12),
+            rgba(0, 0, 0, 0.56) 72%,
+            rgba(0, 0, 0, 0.78)
+        );
+
+    z-index: 2000;
+
+    animation:
+        antenna-root-in 180ms ease-out;
+}
+
+/* ==================================================
+   ANTENNA TERMINAL
+================================================== */
+
+.antenna-terminal {
+    position: absolute;
+
+    left: 50%;
+    top: 50%;
+
+    width: min(720px, 94vw);
+
+    max-height: 94vh;
+
+    padding: 7px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #292a25 0%,
+            #151611 34%,
+            #090a08 100%
+        );
+
+    border:
+        1px solid rgba(
+            144,
+            134,
+            105,
+            0.58
+        );
+
+    box-shadow:
+        0 30px 85px rgba(0, 0, 0, 0.9),
+        0 8px 28px rgba(0, 0, 0, 0.72),
+        inset 0 1px 0 rgba(255, 255, 255, 0.045);
+
+    transform:
+        translate(-50%, -50%);
+
+    overflow: hidden;
+
+    animation:
+        antenna-terminal-in
+        220ms
+        cubic-bezier(0.2, 0.75, 0.2, 1);
+}
+
+.antenna-terminal-frame {
+    position: relative;
+
+    width: 100%;
+
+    max-height: calc(94vh - 14px);
+
+    padding: 17px;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(28, 29, 25, 0.985),
+            rgba(10, 11, 9, 0.995)
+        );
+
+    border:
+        1px solid rgba(
+            86,
+            82,
+            68,
+            0.58
+        );
+
+    scrollbar-width: thin;
+
+    scrollbar-color:
+        #5d5746
+        #11120f;
+}
+
+.antenna-terminal-frame::-webkit-scrollbar {
+    width: 5px;
+}
+
+.antenna-terminal-frame::-webkit-scrollbar-track {
+    background:
+        #0b0c0a;
+}
+
+.antenna-terminal-frame::-webkit-scrollbar-thumb {
+    background:
+        #5d5746;
+
+    border-radius: 0;
+}
+
+/* ==================================================
+   ANTENNA HEADER
+================================================== */
+
+.antenna-header {
+    min-height: 52px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    border-bottom:
+        1px solid rgba(
+            163,
+            148,
+            114,
+            0.18
+        );
+
+    padding-bottom: 11px;
+}
+
+.antenna-brand {
+    display: flex;
+
+    align-items: center;
+
+    gap: 11px;
+
+    min-width: 0;
+}
+
+.antenna-brand-mark {
+    width: 32px;
+    height: 32px;
+
+    position: relative;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 3px;
+
+    flex-shrink: 0;
+
+    border:
+        1px solid #9c8e6c;
+
+    background:
+        linear-gradient(
+            145deg,
+            #b8aa82,
+            #817453
+        );
+
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.14),
+        0 2px 6px rgba(0, 0, 0, 0.45);
+}
+
+.antenna-brand-mark span {
+    width: 2px;
+
+    display: block;
+
+    background:
+        #10110e;
+
+    transform-origin:
+        bottom center;
+}
+
+.antenna-brand-mark span:nth-child(1) {
+    height: 10px;
+
+    transform:
+        rotate(-24deg);
+}
+
+.antenna-brand-mark span:nth-child(2) {
+    height: 18px;
+}
+
+.antenna-brand-mark span:nth-child(3) {
+    height: 10px;
+
+    transform:
+        rotate(24deg);
+}
+
+.antenna-brand-copy {
+    min-width: 0;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 4px;
+}
+
+.antenna-brand-copy strong {
+    color:
+        var(--radio-text-bright);
+
+    font-size: 13px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.12em;
+}
+
+.antenna-brand-copy small {
+    color:
+        var(--radio-muted);
+
+    font-size: 7px;
+
+    font-weight: 700;
+
+    letter-spacing: 0.24em;
+
+    white-space: nowrap;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+}
+
+.antenna-header-status {
+    display: flex;
+
+    align-items: center;
+
+    gap: 7px;
+
+    flex-shrink: 0;
+}
+
+.antenna-status-label {
+    color:
+        var(--radio-dim);
+
+    font-family:
+        "Courier New",
+        monospace;
+
+    font-size: 7px;
+
+    letter-spacing: 0.14em;
+}
+
+.antenna-status-value {
+    min-width: 56px;
+
+    padding: 4px 6px;
+
+    color:
+        var(--radio-green-bright);
+
+    border:
+        1px solid rgba(
+            113,
+            142,
+            84,
+            0.35
+        );
+
+    background:
+        rgba(
+            38,
+            48,
+            31,
+            0.55
+        );
+
+    font-family:
+        "Courier New",
+        monospace;
+
+    font-size: 7px;
+
+    font-weight: 700;
+
+    letter-spacing: 0.11em;
+
+    text-align: center;
+}
+
+.antenna-status-value.offline,
+.antenna-status-value.broken {
+    color:
+        #c08372;
+
+    border-color:
+        rgba(
+            139,
+            81,
+            70,
+            0.4
+        );
+
+    background:
+        rgba(
+            48,
+            32,
+            29,
+            0.6
+        );
+}
+
+.antenna-close-button {
+    width: 30px;
+    height: 30px;
+
+    margin-left: 4px;
+
+    border:
+        1px solid rgba(
+            117,
+            108,
+            87,
+            0.35
+        );
+
+    background:
+        rgba(
+            8,
+            9,
+            8,
+            0.78
+        );
+
+    color:
+        var(--radio-muted);
+
+    font-size: 21px;
+
+    line-height: 1;
+
+    cursor: pointer;
+
+    transition:
+        color 120ms ease,
+        background 120ms ease,
+        border-color 120ms ease;
+}
+
+.antenna-close-button:hover {
+    color:
+        var(--radio-text-bright);
+
+    background:
+        rgba(
+            142,
+            127,
+            91,
+            0.13
+        );
+
+    border-color:
+        rgba(
+            163,
+            148,
+            114,
+            0.62
+        );
+}
+
+/* ==================================================
+   ANTENNA OVERVIEW
+================================================== */
+
+.antenna-overview {
+    display: grid;
+
+    grid-template-columns:
+        1.4fr
+        0.8fr
+        1fr;
+
+    gap: 7px;
+
+    margin-top: 10px;
+}
+
+.antenna-id-block,
+.antenna-state-block,
+.antenna-owner-block {
+    min-width: 0;
+
+    padding: 11px 12px;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(23, 24, 20, 0.96),
+            rgba(13, 14, 12, 0.96)
+        );
+
+    border:
+        1px solid rgba(
+            100,
+            94,
+            77,
+            0.34
+        );
+}
+
+.antenna-kicker {
+    display: block;
+
+    margin-bottom: 6px;
+
+    color:
+        var(--radio-dim);
+
+    font-family:
+        "Courier New",
+        monospace;
+
+    font-size: 6px;
+
+    font-weight: 700;
+
+    letter-spacing: 0.17em;
+}
+
+.antenna-id-block > strong,
+.antenna-state-block > strong,
+.antenna-owner-block > strong {
+    display: block;
+
+    color:
+        var(--radio-text-bright);
+
+    font-family:
+        "Courier New",
+        monospace;
+
+    font-size: 12px;
+
+    letter-spacing: 0.08em;
+
+    white-space: nowrap;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+}
+
+.antenna-id-block > strong {
+    color:
+        var(--radio-khaki-bright);
+}
+
+.antenna-type {
+    display: block;
+
+    margin-top: 4px;
+
+    color:
+        var(--radio-muted);
+
+    font-size: 6px;
+
+    font-weight: 700;
+
+    letter-spacing: 0.13em;
+}
+
+.antenna-state {
+    color:
+        var(--radio-green-bright) !important;
+}
+
+.antenna-state.broken {
+    color:
+        #c08372 !important;
+}
+
+.antenna-state.maintenance {
+    color:
+        var(--radio-khaki-bright) !important;
+}
+
+/* ==================================================
+   ANTENNA SECTION HEADING
+================================================== */
+
+.antenna-section-heading {
+    display: flex;
+
+    align-items: flex-end;
+    justify-content: space-between;
+
+    gap: 15px;
+
+    margin-bottom: 10px;
+}
+
+.antenna-section-heading > div {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 4px;
+}
+
+.antenna-section-kicker {
+    color:
+        var(--radio-dim);
+
+    font-size: 6px;
+
+    font-weight: 700;
+
+    letter-spacing: 0.2em;
+}
+
+.antenna-section-heading strong {
+    color:
+        var(--radio-text);
+
+    font-size: 10px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.14em;
+}
+
+/* ==================================================
+   ANTENNA HEALTH
+================================================== */
+
+.antenna-health-panel {
+    position: relative;
+
+    margin-top: 8px;
+
+    padding: 13px;
+
+    background:
+        radial-gradient(
+            ellipse at center,
+            rgba(
+                84,
+                99,
+                61,
+                0.09
+            ),
+            transparent 72%
+        ),
+        #0c0e0b;
+
+    border:
+        1px solid #3e4734;
+
+    box-shadow:
+        inset 0 0 25px rgba(0, 0, 0, 0.75);
+}
+
+.antenna-health-value {
+    color:
+        var(--radio-green-bright) !important;
+
+    font-family:
+        "Courier New",
+        monospace;
+
+    font-size: 18px !important;
+
+    letter-spacing: 0.03em !important;
+}
+
+.antenna-health-value.warning {
+    color:
+        var(--radio-khaki-bright) !important;
+}
+
+.antenna-health-value.danger {
+    color:
+        #c08372 !important;
+}
+
+.antenna-health-track {
+    position: relative;
+
+    width: 100%;
+    height: 9px;
+
+    overflow: hidden;
+
+    background:
+        #171a14;
+
+    border:
+        1px solid rgba(
+            96,
+            107,
+            78,
+            0.4
+        );
+
+    box-shadow:
+        inset 0 0 6px rgba(0, 0, 0, 0.8);
+}
+
+.antenna-health-fill {
+    height: 100%;
+
+    width: 100%;
+
+    background:
+        linear-gradient(
+            90deg,
+            #51693c,
+            #9ab778
+        );
+
+    box-shadow:
+        0 0 8px rgba(
+            134,
+            167,
+            100,
+            0.25
+        );
+
+    transition:
+        width 300ms ease,
+        background 180ms ease;
+}
+
+.antenna-health-fill.warning {
+    background:
+        linear-gradient(
+            90deg,
+            #75613c,
+            #b19a62
+        );
+
+    box-shadow:
+        0 0 8px rgba(
+            177,
+            154,
+            98,
+            0.22
+        );
+}
+
+.antenna-health-fill.danger {
+    background:
+        linear-gradient(
+            90deg,
+            #633b35,
+            #a05b4c
+        );
+
+    box-shadow:
+        0 0 8px rgba(
+            160,
+            91,
+            76,
+            0.25
+        );
+}
+
+.antenna-health-scale {
+    display: flex;
+
+    justify-content: space-between;
+
+    margin-top: 5px;
+
+    color:
+        #4f5148;
+
+    font-family:
+        "Courier New",
+        monospace;
+
+    font-size: 5px;
+
+    letter-spacing: 0.06em;
+}
+
+/* ==================================================
+   ANTENNA NETWORK
+================================================== */
+
+.antenna-network-panel {
+    margin-top: 8px;
+
+    padding: 13px;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(20, 21, 17, 0.96),
+            rgba(11, 12, 10, 0.96)
+        );
+
+    border:
+        1px solid rgba(
+            100,
+            94,
+            77,
+            0.34
+        );
+}
+
+.antenna-network-state {
+    padding: 4px 7px;
+
+    color:
+        var(--radio-green-bright);
+
+    border:
+        1px solid rgba(
+            113,
+            142,
+            84,
+            0.32
+        );
+
+    background:
+        rgba(
+            38,
+            48,
+            31,
+            0.45
+        );
+
+    font-family:
+        "Courier New",
+        monospace;
+
+    font-size: 7px;
+
+    font-weight: 700;
+
+    letter-spacing: 0.1em;
+}
+
+.antenna-network-state.offline,
+.antenna-network-state.broken {
+    color:
+        #c08372;
+
+    border-color:
+        rgba(
+            139,
+            81,
+            70,
+            0.38
+        );
+
+    background:
+        rgba(
+            48,
+            32,
+            29,
+            0.5
+        );
+}
+
+.antenna-network-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap: 6px;
+}
+
+.antenna-data-cell {
+    min-width: 0;
+
+    padding: 9px;
+
+    border:
+        1px solid rgba(
+            91,
+            87,
+            71,
+            0.28
+        );
+
+    background:
+        rgba(
+            8,
+            9,
+            8,
+            0.52
+        );
+}
+
+.antenna-data-cell > span {
+    display: block;
+
+    margin-bottom: 5px;
+
+    color:
+        var(--radio-dim);
+
+    font-size: 6px;
+
+    font-weight: 700;
+
+    letter-spacing: 0.13em;
+
+    white-space: nowrap;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+}
+
+.antenna-data-cell > strong {
+    display: block;
+
+    color:
+        var(--radio-text-bright);
+
+    font-family:
+        "Courier New",
+        monospace;
+
+    font-size: 10px;
+
+    letter-spacing: 0.05em;
+
+    white-space: nowrap;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+}
+
+.antenna-data-cell > strong > span {
+    color:
+        var(--radio-khaki-bright);
+}
+
+/* ==================================================
+   ANTENNA MATERIALS
+================================================== */
+
+.antenna-materials-panel {
+    margin-top: 8px;
+
+    padding: 13px;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(20, 21, 17, 0.96),
+            rgba(11, 12, 10, 0.96)
+        );
+
+    border:
+        1px solid rgba(
+            100,
+            94,
+            77,
+            0.34
+        );
+}
+
+.antenna-materials {
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap: 6px;
+}
+
+.antenna-material {
+    min-width: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    padding: 8px;
+
+    border:
+        1px solid rgba(
+            91,
+            87,
+            71,
+            0.28
+        );
+
+    background:
+        rgba(
+            8,
+            9,
+            8,
+            0.54
+        );
+}
+
+.antenna-material-icon {
+    width: 25px;
+    height: 25px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    color:
+        #171812;
+
+    background:
+        linear-gradient(
+            145deg,
+            #a99a73,
+            #746747
+        );
+
+    border:
+        1px solid #aa9a72;
+
+    font-family:
+        "Courier New",
+        monospace;
+
+    font-size: 7px;
+
+    font-weight: 900;
+}
+
+.antenna-material-copy {
+    min-width: 0;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 3px;
+}
+
+.antenna-material-copy strong {
+    color:
+        var(--radio-text);
+
+    font-size: 6px;
+
+    font-weight: 700;
+
+    letter-spacing: 0.09em;
+
+    white-space: nowrap;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+}
+
+.antenna-material-copy small {
+    color:
+        var(--radio-khaki-bright);
+
+    font-family:
+        "Courier New",
+        monospace;
+
+    font-size: 9px;
+
+    font-weight: 700;
+}
+
+.antenna-material.insufficient {
+    border-color:
+        rgba(
+            139,
+            81,
+            70,
+            0.42
+        );
+
+    background:
+        rgba(
+            48,
+            32,
+            29,
+            0.3
+        );
+}
+
+.antenna-material.insufficient
+.antenna-material-copy small {
+    color:
+        #b87362;
+}
+
+/* ==================================================
+   ANTENNA OPERATIONS
+================================================== */
+
+.antenna-actions {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 7px;
+
+    margin-top: 8px;
+}
+
+.antenna-action {
+    position: relative;
+
+    min-width: 0;
+
+    min-height: 64px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 9px;
+
+    padding: 10px;
+
+    overflow: hidden;
+
+    border:
+        1px solid rgba(
+            111,
+            103,
+            82,
+            0.4
+        );
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(29, 31, 25, 0.98),
+            rgba(15, 16, 13, 0.98)
+        );
+
+    color:
+        var(--radio-text);
+
+    cursor: pointer;
+
+    text-align: left;
+
+    transition:
+        background 120ms ease,
+        border-color 120ms ease,
+        transform 120ms ease,
+        opacity 120ms ease;
+}
+
+.antenna-action:hover:not(:disabled) {
+    transform:
+        translateY(-1px);
+
+    border-color:
+        rgba(
+            163,
+            148,
+            114,
+            0.65
+        );
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(37, 39, 31, 0.98),
+            rgba(18, 19, 15, 0.98)
+        );
+}
+
+.antenna-action:active:not(:disabled) {
+    transform:
+        translateY(0);
+}
+
+.antenna-action:disabled {
+    opacity: 0.34;
+
+    cursor: not-allowed;
+
+    filter:
+        saturate(0.5);
+}
+
+.antenna-action.repair {
+    border-color:
+        rgba(
+            91,
+            119,
+            67,
+            0.5
+        );
+}
+
+.antenna-action.maintenance {
+    border-color:
+        rgba(
+            145,
+            125,
+            78,
+            0.48
+        );
+}
+
+.antenna-action.danger {
+    border-color:
+        rgba(
+            125,
+            76,
+            64,
+            0.48
+        );
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(51, 34, 30, 0.96),
+            rgba(28, 20, 18, 0.98)
+        );
+}
+
+.antenna-action.danger:hover:not(:disabled) {
+    border-color:
+        rgba(
+            151,
+            87,
+            72,
+            0.72
+        );
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(65, 42, 36, 0.96),
+            rgba(34, 23, 20, 0.98)
+        );
+}
+
+.antenna-action-icon {
+    width: 29px;
+    height: 29px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    border:
+        1px solid rgba(
+            151,
+            141,
+            110,
+            0.42
+        );
+
+    background:
+        rgba(
+            9,
+            10,
+            8,
+            0.72
+        );
+
+    color:
+        var(--radio-khaki-bright);
+
+    font-family:
+        "Courier New",
+        monospace;
+
+    font-size: 13px;
+
+    font-weight: 700;
+}
+
+.antenna-action.repair
+.antenna-action-icon {
+    color:
+        var(--radio-green-bright);
+
+    border-color:
+        rgba(
+            113,
+            142,
+            84,
+            0.4
+        );
+}
+
+.antenna-action.danger
+.antenna-action-icon {
+    color:
+        #b87565;
+
+    border-color:
+        rgba(
+            139,
+            81,
+            70,
+            0.42
+        );
+}
+
+.antenna-action-copy {
+    min-width: 0;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 4px;
+}
+
+.antenna-action-copy strong {
+    color:
+        var(--radio-text-bright);
+
+    font-size: 8px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.12em;
+}
+
+.antenna-action-copy small {
+    color:
+        rgba(
+            205,
+            198,
+            177,
+            0.48
+        );
+
+    font-size: 5px;
+
+    line-height: 1.35;
+
+    letter-spacing: 0.07em;
+}
+
+.antenna-action-cost {
+    position: absolute;
+
+    right: 7px;
+    bottom: 6px;
+
+    color:
+        var(--radio-dim);
+
+    font-family:
+        "Courier New",
+        monospace;
+
+    font-size: 5px;
+
+    letter-spacing: 0.06em;
+}
+
+/* ==================================================
+   ANTENNA OPERATION STATUS
+================================================== */
+
+.antenna-operation-status {
+    min-height: 42px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 9px;
+
+    margin-top: 8px;
+
+    padding: 8px 10px;
+
+    border:
+        1px solid rgba(
+            145,
+            134,
+            100,
+            0.32
+        );
+
+    background:
+        rgba(
+            20,
+            21,
+            17,
+            0.9
+        );
+}
+
+.antenna-operation-indicator {
+    width: 7px;
+    height: 7px;
+
+    flex-shrink: 0;
+
+    border-radius: 50%;
+
+    background:
+        var(--radio-khaki);
+
+    box-shadow:
+        0 0 7px rgba(
+            163,
+            148,
+            114,
+            0.4
+        );
+
+    animation:
+        operation-pulse 1.1s
+        ease-in-out infinite;
+}
+
+.antenna-operation-status.success
+.antenna-operation-indicator {
+    background:
+        var(--radio-green-bright);
+
+    box-shadow:
+        0 0 7px rgba(
+            166,
+            196,
+            135,
+            0.55
+        );
+
+    animation: none;
+}
+
+.antenna-operation-status.error
+.antenna-operation-indicator {
+    background:
+        #b87565;
+
+    box-shadow:
+        0 0 7px rgba(
+            184,
+            117,
+            101,
+            0.48
+        );
+
+    animation: none;
+}
+
+.antenna-operation-status > div {
+    min-width: 0;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 3px;
+}
+
+.antenna-operation-status strong {
+    color:
+        var(--radio-text);
+
+    font-family:
+        "Courier New",
+        monospace;
+
+    font-size: 8px;
+
+    letter-spacing: 0.1em;
+}
+
+.antenna-operation-status small {
+    color:
+        var(--radio-muted);
+
+    font-size: 6px;
+
+    letter-spacing: 0.08em;
+}
+
+/* ==================================================
+   ANTENNA FOOTER
+================================================== */
+
+.antenna-footer {
+    min-height: 27px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 10px;
+
+    margin-top: 10px;
+
+    padding-top: 9px;
+
+    border-top:
+        1px solid rgba(
+            163,
+            148,
+            114,
+            0.13
+        );
+
+    color:
+        #555249;
+
+    font-family:
+        "Courier New",
+        monospace;
+
+    font-size: 5px;
+
+    font-weight: 700;
+
+    letter-spacing: 0.13em;
+}
+
+.antenna-footer > div {
+    display: flex;
+
+    align-items: center;
+
+    gap: 6px;
+}
+
+.antenna-footer-divider {
+    width: 2px;
+    height: 2px;
+
+    display: inline-block;
+
+    border-radius: 50%;
+
+    background:
+        #4b493f;
+}
+
+.antenna-footer span:not(.antenna-footer-divider) {
+    white-space: nowrap;
+}
+
+.antenna-footer > div:last-child span:first-child {
+    color:
+        var(--radio-khaki);
+}
+
+/* ==================================================
+   ANTENNA ROOT / TERMINAL ANIMATIONS
+================================================== */
+
+@keyframes antenna-root-in {
     from {
         opacity: 0;
     }
@@ -1323,7 +2814,7 @@ button {
     }
 }
 
-@keyframes device-in {
+@keyframes antenna-terminal-in {
     from {
         opacity: 0;
 
@@ -1341,140 +2832,179 @@ button {
     }
 }
 
-@keyframes power-pulse {
+@keyframes operation-pulse {
     0%,
     100% {
-        opacity: 0.55;
+        opacity: 0.35;
+
+        transform:
+            scale(0.85);
     }
 
     50% {
         opacity: 1;
+
+        transform:
+            scale(1);
     }
 }
 
 /* ==================================================
-   RESPONSIVE
+   ANTENNA RESPONSIVE
 ================================================== */
 
-@media (max-width: 500px) {
-    #radio {
-        padding: 0;
-    }
-
-    .device {
+@media (max-width: 720px) {
+    .antenna-terminal {
         width:
             min(
-                410px,
-                96vw
+                94vw,
+                600px
             );
     }
 
-    .device-frame {
-        padding: 12px;
-    }
-
-    .screen {
-        min-height: 190px;
-
-        padding:
-            13px
-            14px
-            11px;
-    }
-
-    #frequency {
-        min-width: 0;
-
-        font-size:
-            clamp(
-                38px,
-                12vw,
-                51px
-            );
-    }
-
-    .controls {
+    .antenna-overview {
         grid-template-columns:
-            57px
-            minmax(0, 1fr)
-            57px;
+            1fr 1fr;
     }
 
-    .actions {
+    .antenna-owner-block {
+        grid-column:
+            1 / -1;
+    }
+
+    .antenna-network-grid {
+        grid-template-columns:
+            repeat(2, 1fr);
+    }
+
+    .antenna-materials {
+        grid-template-columns:
+            repeat(2, 1fr);
+    }
+
+    .antenna-actions {
         grid-template-columns:
             1fr;
     }
 }
 
-@media (max-height: 650px) {
-    #radio {
-        padding-top: 0;
-        padding-bottom: 0;
+@media (max-width: 500px) {
+    .antenna-terminal {
+        width:
+            96vw;
+
+        max-height:
+            96vh;
+
+        padding: 5px;
     }
 
-    .device-frame {
+    .antenna-terminal-frame {
+        max-height:
+            calc(96vh - 10px);
+
+        padding: 11px;
+    }
+
+    .antenna-header {
+        align-items: flex-start;
+    }
+
+    .antenna-brand-copy strong {
+        font-size: 10px;
+    }
+
+    .antenna-brand-copy small {
+        font-size: 5px;
+    }
+
+    .antenna-header-status {
+        gap: 4px;
+    }
+
+    .antenna-status-label {
+        display: none;
+    }
+
+    .antenna-overview {
+        grid-template-columns:
+            1fr 1fr;
+    }
+
+    .antenna-id-block,
+    .antenna-state-block,
+    .antenna-owner-block {
+        padding: 9px;
+    }
+
+    .antenna-network-grid {
+        grid-template-columns:
+            1fr 1fr;
+    }
+
+    .antenna-materials {
+        grid-template-columns:
+            1fr 1fr;
+    }
+
+    .antenna-material {
+        padding: 7px;
+    }
+
+    .antenna-footer {
+        font-size: 4px;
+    }
+}
+
+@media (max-height: 700px) {
+    .antenna-terminal {
+        max-height:
+            96vh;
+    }
+
+    .antenna-terminal-frame {
+        max-height:
+            calc(96vh - 14px);
+
+        padding: 12px;
+    }
+
+    .antenna-header {
+        min-height: 44px;
+
+        padding-bottom: 8px;
+    }
+
+    .antenna-overview {
+        margin-top: 7px;
+    }
+
+    .antenna-health-panel,
+    .antenna-network-panel,
+    .antenna-materials-panel {
+        margin-top: 6px;
+
         padding: 10px;
     }
 
-    .top {
-        min-height: 42px;
+    .antenna-data-cell {
+        padding: 7px;
     }
 
-    .device-subtitle {
-        margin-top: 4px;
+    .antenna-material {
+        padding: 6px;
     }
 
-    .header-rule {
-        margin:
-            7px 0
-            8px;
+    .antenna-action {
+        min-height: 54px;
+
+        padding: 8px;
     }
 
-    .screen {
-        min-height: 175px;
-
-        padding:
-            11px
-            13px
-            9px;
-    }
-
-    .frequency-block {
-        padding:
-            12px 0
-            9px;
-    }
-
-    #frequency {
-        font-size: 43px;
-    }
-
-    .controls {
-        margin-top: 7px;
-    }
-
-    .frequency-button,
-    .frequency-display-button {
-        min-height: 46px;
-    }
-
-    .volume-panel {
+    .antenna-footer {
         margin-top: 7px;
 
-        padding-top: 8px;
-        padding-bottom: 7px;
-    }
-
-    .actions {
-        margin-top: 7px;
-    }
-
-    .action-button {
-        min-height: 43px;
-    }
-
-    .hint {
-        margin-top: 7px;
+        padding-top: 7px;
     }
 }
 

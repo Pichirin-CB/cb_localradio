@@ -17,6 +17,11 @@
 </head>
 
 <body>
+
+    <!-- =========================================================
+         LOCAL RADIO
+         ========================================================= -->
+
     <main
         id="radio"
         class="hidden"
@@ -372,6 +377,7 @@
                         <span></span>
                         <span></span>
                         <span></span>
+                        <span></span>
                     </div>
 
                 </section>
@@ -453,6 +459,631 @@
         </section>
     </main>
 
+
+    <!-- =========================================================
+         ANTENNA SERVICE TERMINAL
+         ========================================================= -->
+
+    <main
+        id="antennaTerminal"
+        class="hidden"
+        aria-hidden="true"
+    >
+        <section
+            class="antenna-terminal"
+            role="dialog"
+            aria-label="Antenna Service Terminal"
+        >
+
+            <div class="antenna-terminal-frame">
+
+                <!-- HEADER -->
+
+                <header class="antenna-header">
+
+                    <div class="antenna-brand">
+
+                        <div class="antenna-brand-mark">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+
+                        <div class="antenna-brand-copy">
+
+                            <strong
+                                data-i18n="antenna_terminal_title"
+                            >
+                                ANTENNA SERVICE TERMINAL
+                            </strong>
+
+                            <small
+                                data-i18n="antenna_terminal_subtitle"
+                            >
+                                LOCAL RADIO NETWORK INFRASTRUCTURE
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                    <div class="antenna-header-status">
+
+                        <span
+                            class="antenna-status-label"
+                            data-i18n="antenna_status"
+                        >
+                            STATUS
+                        </span>
+
+                        <span
+                            id="antennaHeaderState"
+                            class="antenna-status-value"
+                        >
+                            ONLINE
+                        </span>
+
+                        <button
+                            id="antennaClose"
+                            class="antenna-close-button"
+                            type="button"
+                            data-i18n-aria="close_antenna"
+                            aria-label="Close antenna terminal"
+                        >
+                            ×
+                        </button>
+
+                    </div>
+
+                </header>
+
+
+                <!-- TOP DATA -->
+
+                <section class="antenna-overview">
+
+                    <div class="antenna-id-block">
+
+                        <span
+                            class="antenna-kicker"
+                            data-i18n="antenna_id"
+                        >
+                            ANTENNA ID
+                        </span>
+
+                        <strong id="antennaId">
+                            ------
+                        </strong>
+
+                        <span
+                            id="antennaType"
+                            class="antenna-type"
+                        >
+                            FIELD ANTENNA
+                        </span>
+
+                    </div>
+
+                    <div class="antenna-state-block">
+
+                        <span
+                            class="antenna-kicker"
+                            data-i18n="antenna_state"
+                        >
+                            SYSTEM STATE
+                        </span>
+
+                        <strong
+                            id="antennaState"
+                            class="antenna-state"
+                        >
+                            ACTIVE
+                        </strong>
+
+                    </div>
+
+                    <div class="antenna-owner-block">
+
+                        <span
+                            class="antenna-kicker"
+                            data-i18n="antenna_owner"
+                        >
+                            OWNER
+                        </span>
+
+                        <strong id="antennaOwner">
+                            UNKNOWN
+                        </strong>
+
+                    </div>
+
+                </section>
+
+
+                <!-- HEALTH -->
+
+                <section class="antenna-health-panel">
+
+                    <div class="antenna-section-heading">
+
+                        <div>
+
+                            <span
+                                class="antenna-section-kicker"
+                                data-i18n="antenna_integrity"
+                            >
+                                STRUCTURAL INTEGRITY
+                            </span>
+
+                            <strong
+                                data-i18n="antenna_health"
+                            >
+                                ANTENNA HEALTH
+                            </strong>
+
+                        </div>
+
+                        <strong
+                            id="antennaHealthValue"
+                            class="antenna-health-value"
+                        >
+                            100%
+                        </strong>
+
+                    </div>
+
+                    <div class="antenna-health-track">
+
+                        <div
+                            id="antennaHealthBar"
+                            class="antenna-health-fill"
+                            style="width: 100%;"
+                        ></div>
+
+                    </div>
+
+                    <div class="antenna-health-scale">
+
+                        <span>0</span>
+                        <span>25</span>
+                        <span>50</span>
+                        <span>75</span>
+                        <span>100</span>
+
+                    </div>
+
+                </section>
+
+
+                <!-- NETWORK INFORMATION -->
+
+                <section class="antenna-network-panel">
+
+                    <div class="antenna-section-heading">
+
+                        <div>
+
+                            <span
+                                class="antenna-section-kicker"
+                                data-i18n="antenna_network"
+                            >
+                                NETWORK
+                            </span>
+
+                            <strong
+                                data-i18n="antenna_coverage"
+                            >
+                                COVERAGE
+                            </strong>
+
+                        </div>
+
+                        <span
+                            id="antennaNetworkState"
+                            class="antenna-network-state"
+                        >
+                            ACTIVE
+                        </span>
+
+                    </div>
+
+                    <div class="antenna-network-grid">
+
+                        <div class="antenna-data-cell">
+
+                            <span
+                                data-i18n="antenna_radius"
+                            >
+                                COVERAGE RADIUS
+                            </span>
+
+                            <strong>
+                                <span id="antennaRadius">
+                                    0
+                                </span>
+                                M
+                            </strong>
+
+                        </div>
+
+                        <div class="antenna-data-cell">
+
+                            <span
+                                data-i18n="antenna_signal"
+                            >
+                                SIGNAL NETWORK
+                            </span>
+
+                            <strong id="antennaSignalNetwork">
+                                OFFLINE
+                            </strong>
+
+                        </div>
+
+                        <div class="antenna-data-cell">
+
+                            <span
+                                data-i18n="antenna_players"
+                            >
+                                CONNECTED UNITS
+                            </span>
+
+                            <strong id="antennaPlayers">
+                                0
+                            </strong>
+
+                        </div>
+
+                        <div class="antenna-data-cell">
+
+                            <span
+                                data-i18n="antenna_distance"
+                            >
+                                DISTANCE
+                            </span>
+
+                            <strong>
+                                <span id="antennaDistance">
+                                    0
+                                </span>
+                                M
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- MATERIALS -->
+
+                <section class="antenna-materials-panel">
+
+                    <div class="antenna-section-heading">
+
+                        <div>
+
+                            <span
+                                class="antenna-section-kicker"
+                                data-i18n="antenna_resources"
+                            >
+                                REQUIRED RESOURCES
+                            </span>
+
+                            <strong
+                                data-i18n="antenna_materials"
+                            >
+                                AVAILABLE MATERIALS
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                    <div
+                        id="antennaMaterials"
+                        class="antenna-materials"
+                    >
+
+                        <div class="antenna-material">
+
+                            <span
+                                class="antenna-material-icon"
+                            >
+                                RK
+                            </span>
+
+                            <div class="antenna-material-copy">
+
+                                <strong
+                                    data-i18n="antenna_repair_kit"
+                                >
+                                    REPAIR KIT
+                                </strong>
+
+                                <small>
+                                    <span
+                                        id="antennaRepairKit"
+                                    >
+                                        0
+                                    </span>
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                        <div class="antenna-material">
+
+                            <span
+                                class="antenna-material-icon"
+                            >
+                                MT
+                            </span>
+
+                            <div class="antenna-material-copy">
+
+                                <strong
+                                    data-i18n="antenna_metal"
+                                >
+                                    SCRAP METAL
+                                </strong>
+
+                                <small>
+                                    <span
+                                        id="antennaMetal"
+                                    >
+                                        0
+                                    </span>
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                        <div class="antenna-material">
+
+                            <span
+                                class="antenna-material-icon"
+                            >
+                                EP
+                            </span>
+
+                            <div class="antenna-material-copy">
+
+                                <strong
+                                    data-i18n="antenna_electronics"
+                                >
+                                    ELECTRONIC PARTS
+                                </strong>
+
+                                <small>
+                                    <span
+                                        id="antennaElectronics"
+                                    >
+                                        0
+                                    </span>
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                        <div class="antenna-material">
+
+                            <span
+                                class="antenna-material-icon"
+                            >
+                                CB
+                            </span>
+
+                            <div class="antenna-material-copy">
+
+                                <strong
+                                    data-i18n="antenna_cable"
+                                >
+                                    RADIO CABLE
+                                </strong>
+
+                                <small>
+                                    <span
+                                        id="antennaCable"
+                                    >
+                                        0
+                                    </span>
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- OPERATIONS -->
+
+                <section class="antenna-actions">
+
+                    <button
+                        id="antennaRepair"
+                        class="antenna-action repair"
+                        type="button"
+                    >
+
+                        <span class="antenna-action-icon">
+                            +
+                        </span>
+
+                        <span class="antenna-action-copy">
+
+                            <strong
+                                data-i18n="antenna_repair"
+                            >
+                                REPAIR
+                            </strong>
+
+                            <small
+                                data-i18n="antenna_repair_description"
+                            >
+                                RESTORE STRUCTURAL INTEGRITY
+                            </small>
+
+                        </span>
+
+                        <span
+                            id="antennaRepairCost"
+                            class="antenna-action-cost"
+                        >
+                            --
+                        </span>
+
+                    </button>
+
+
+                    <button
+                        id="antennaMaintain"
+                        class="antenna-action maintenance"
+                        type="button"
+                    >
+
+                        <span class="antenna-action-icon">
+                            M
+                        </span>
+
+                        <span class="antenna-action-copy">
+
+                            <strong
+                                data-i18n="antenna_maintenance"
+                            >
+                                MAINTENANCE
+                            </strong>
+
+                            <small
+                                data-i18n="antenna_maintenance_description"
+                            >
+                                PREVENT NETWORK DEGRADATION
+                            </small>
+
+                        </span>
+
+                        <span
+                            id="antennaMaintenanceCost"
+                            class="antenna-action-cost"
+                        >
+                            --
+                        </span>
+
+                    </button>
+
+
+                    <button
+                        id="antennaRemove"
+                        class="antenna-action danger"
+                        type="button"
+                    >
+
+                        <span class="antenna-action-icon">
+                            ×
+                        </span>
+
+                        <span class="antenna-action-copy">
+
+                            <strong
+                                data-i18n="antenna_remove"
+                            >
+                                REMOVE
+                            </strong>
+
+                            <small
+                                data-i18n="antenna_remove_description"
+                            >
+                                DISMANTLE ANTENNA
+                            </small>
+
+                        </span>
+
+                        <span class="antenna-action-cost">
+                            --
+                        </span>
+
+                    </button>
+
+                </section>
+
+
+                <!-- OPERATION STATUS -->
+
+                <section
+                    id="antennaOperationStatus"
+                    class="antenna-operation-status hidden"
+                >
+
+                    <span
+                        id="antennaOperationIndicator"
+                        class="antenna-operation-indicator"
+                    ></span>
+
+                    <div>
+
+                        <strong id="antennaOperationTitle">
+                            PROCESSING
+                        </strong>
+
+                        <small id="antennaOperationMessage">
+                            PLEASE WAIT...
+                        </small>
+
+                    </div>
+
+                </section>
+
+
+                <!-- FOOTER -->
+
+                <footer class="antenna-footer">
+
+                    <div>
+
+                        <span
+                            data-i18n="antenna_terminal"
+                        >
+                            ANTENNA TERMINAL
+                        </span>
+
+                        <span class="antenna-footer-divider"></span>
+
+                        <span
+                            data-i18n="antenna_secure"
+                        >
+                            SECURE LOCAL NETWORK
+                        </span>
+
+                    </div>
+
+                    <div>
+
+                        <span>ESC</span>
+
+                        <span
+                            data-i18n="antenna_close"
+                        >
+                            CLOSE
+                        </span>
+
+                    </div>
+
+                </footer>
+
+            </div>
+
+        </section>
+    </main>
+
+
     <script src="app.js"></script>
+
 </body>
 </html>

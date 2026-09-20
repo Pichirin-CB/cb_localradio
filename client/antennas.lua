@@ -3,7 +3,9 @@ AntennaClient = {
     byId = {},
     entities = {},
     blips = {},
-    networks = {}
+    networks = {},
+    uiOpen = false,
+    selectedId = nil
 }
 
 local interactionActive = false
@@ -70,9 +72,13 @@ local function createBlip(a)
 
     if Config.Blips.showName then
         BeginTextCommandSetBlipName('STRING')
+
         AddTextComponentString(
-            ('Antena de radio - %s'):format(labelForState(a.state))
+            ('Antena de radio - %s'):format(
+                labelForState(a.state)
+            )
         )
+
         EndTextCommandSetBlipName(blip)
     end
 
@@ -104,6 +110,7 @@ local function spawnPlayerProp(a)
 
     if AntennaClient.entities[a.id]
         and DoesEntityExist(AntennaClient.entities[a.id]) then
+
         return
     end
 
@@ -115,6 +122,7 @@ local function spawnPlayerProp(a)
 
     while not HasModelLoaded(model)
         and GetGameTimer() < timeout do
+
         Wait(0)
     end
 
@@ -132,10 +140,26 @@ local function spawnPlayerProp(a)
         false
     )
 
-    SetEntityHeading(object, a.heading or 0.0)
-    FreezeEntityPosition(object, true)
-    SetEntityInvincible(object, true)
-    SetEntityAsMissionEntity(object, true, true)
+    SetEntityHeading(
+        object,
+        a.heading or 0.0
+    )
+
+    FreezeEntityPosition(
+        object,
+        true
+    )
+
+    SetEntityInvincible(
+        object,
+        true
+    )
+
+    SetEntityAsMissionEntity(
+        object,
+        true,
+        true
+    )
 
     AntennaClient.entities[a.id] = object
 
@@ -152,37 +176,494 @@ local function removePlayerProp(id)
     AntennaClient.entities[id] = nil
 end
 
-RegisterNetEvent('cb_localradio:client:syncAntennas', function(list)
-    for id, entity in pairs(AntennaClient.entities) do
-        local stillExists = false
+local function getLocale()
+    local locale = Config.Locales
+        and Config.Locales[Config.Locale]
 
-        for _, antenna in ipairs(list or {}) do
-            if antenna.id == id then
-                stillExists = true
+    if locale then
+        return locale
+    end
+
+    return Config.Locales
+        and Config.Locales.en
+        or {}
+end
+
+local function getClosestAntenna(maxDistance)
+    local ped = PlayerPedId()
+    local coords = GetEntityCoords(ped)
+
+    local closest = nil
+    local closestDistance = nil
+
+    for _, antenna in pairs(AntennaClient.list) do
+        local antennaCoords = vector3(
+            antenna.x,
+            antenna.y,
+            antenna.z
+        )
+
+        local distance = #(
+            coords - antennaCoords
+        )
+
+        if distance <= maxDistance then
+            if not closestDistance
+                or distance < closestDistance then
+
+                closest = antenna
+                closestDistance = distance
+            end
+        end
+    end
+
+    return closest, closestDistance
+end
+
+local function closeAntennaUI()
+    if not AntennaClient.uiOpen then
+        return
+    end
+
+    AntennaClient.uiOpen = false
+    AntennaClient.selectedId = nil
+
+    SetNuiFocus(
+        false,
+        false
+    )
+
+    SendNUIMessage({
+        action = 'antennaClose'
+    })
+end
+
+local function openAntennaUI(antenna)
+    if not antenna then
+        return
+    end
+
+    if AntennaClient.uiOpen then
+        return
+    end
+
+    AntennaClient.uiOpen = true
+    AntennaClient.selectedId = antenna.id
+
+    SetNuiFocus(
+        true,
+        true
+    )
+
+    SendNUIMessage({
+        action = 'antennaOpen',
+
+        antenna = antenna,
+
+        locale = Config.Locale,
+
+        translations = getLocale()
+    })
+end
+
+local function refreshAntennaUI()
+    if not AntennaClient.uiOpen
+        or not AntennaClient.selectedId then
+
+        return
+    end
+
+    local antenna = AntennaClient.byId[
+        AntennaClient.selectedId
+    ]
+
+    if not antenna then
+        closeAntennaUI()
+        return
+    end
+
+    SendNUIMessage({
+        action = 'antennaUpdate',
+
+        antenna = antenna,
+
+        translations = getLocale()
+    })
+end
+
+local function requestAntennaTerminal()
+    if interactionActive then
+        return
+    end
+
+    if AntennaClient.uiOpen then
+        return
+    end
+
+    local antenna = getClosestAntenna(
+        Config.Antenna.interactionDistance + 1.5
+    )
+
+    if not antenna then
+        return
+    end
+
+    TriggerServerEvent(
+        'cb_localradio:server:openAntenna',
+        antenna.id
+    )
+end
+
+RegisterNetEvent(
+    'cb_localradio:client:openAntennaUI',
+    function(data)
+        if type(data) ~= 'table'
+            or not data.antenna then
+
+            return
+        end
+
+        local antenna = data.antenna
+
+        AntennaClient.byId[antenna.id] = antenna
+
+        openAntennaUI(antenna)
+    end
+)
+
+RegisterNetEvent(
+    'cb_localradio:client:updateAntennaUI',
+    function(antenna)
+        if type(antenna) ~= 'table'
+            or not antenna.id then
+
+            return
+        end
+
+        AntennaClient.byId[antenna.id] = antenna
+
+        for index, current in ipairs(
+            AntennaClient.list
+        ) do
+
+            if current.id == antenna.id then
+                AntennaClient.list[index] = antenna
                 break
             end
         end
 
-        if not stillExists then
-            removePlayerProp(id)
+        refreshAntennaUI()
+        updateBlips()
+    end
+)
+
+RegisterNetEvent(
+    'cb_localradio:client:closeAntennaUI',
+    function()
+        closeAntennaUI()
+    end
+)
+
+RegisterNetEvent(
+    'cb_localradio:client:antennaOperation',
+    function(operation, antenna)
+        if type(operation) ~= 'string'
+            or type(antenna) ~= 'table' then
+
+            return
+        end
+
+        if operation == 'repair' then
+            if interactionActive then
+                return
+            end
+
+            interactionActive = true
+
+            Bridge.Progress(
+                'cb_localradio_repair',
+                'Reparando antena...',
+                Config.Antenna.repair.duration,
+                Config.Antenna.repair.animation,
+
+                function()
+                    TriggerServerEvent(
+                        'cb_localradio:server:repair',
+                        antenna.id
+                    )
+
+                    interactionActive = false
+                end,
+
+                function()
+                    interactionActive = false
+                end
+            )
+
+            return
+        end
+
+        if operation == 'maintenance' then
+            if interactionActive then
+                return
+            end
+
+            interactionActive = true
+
+            Bridge.Progress(
+                'cb_localradio_maintenance',
+                'Realizando mantenimiento...',
+                Config.Antenna.maintenance.duration,
+                Config.Antenna.maintenance.animation,
+
+                function()
+                    TriggerServerEvent(
+                        'cb_localradio:server:maintain',
+                        antenna.id
+                    )
+
+                    interactionActive = false
+                end,
+
+                function()
+                    interactionActive = false
+                end
+            )
+
+            return
+        end
+
+        if operation == 'remove' then
+            if interactionActive then
+                return
+            end
+
+            TriggerServerEvent(
+                'cb_localradio:server:removeAntenna',
+                antenna.id
+            )
+
+            return
         end
     end
+)
 
-    AntennaClient.list = list or {}
-    AntennaClient.byId = {}
+RegisterNUICallback(
+    'antennaClose',
+    function(_, cb)
+        closeAntennaUI()
 
-    for _, antenna in ipairs(AntennaClient.list) do
-        AntennaClient.byId[antenna.id] = antenna
-
-        spawnPlayerProp(antenna)
+        cb({
+            ok = true
+        })
     end
+)
 
-    updateBlips()
-end)
+RegisterNUICallback(
+    'antennaRepair',
+    function(data, cb)
+        local id = data
+            and data.id
 
-RegisterNetEvent('cb_localradio:client:syncNetworks', function(networks)
-    AntennaClient.networks = networks or {}
-end)
+        if not id then
+            cb({
+                ok = false
+            })
+
+            return
+        end
+
+        local antenna = AntennaClient.byId[
+            tostring(id)
+        ]
+
+        if not antenna then
+            cb({
+                ok = false
+            })
+
+            return
+        end
+
+        TriggerServerEvent(
+            'cb_localradio:server:requestAntennaOperation',
+            'repair',
+            antenna.id
+        )
+
+        cb({
+            ok = true
+        })
+    end
+)
+
+RegisterNUICallback(
+    'antennaMaintenance',
+    function(data, cb)
+        local id = data
+            and data.id
+
+        if not id then
+            cb({
+                ok = false
+            })
+
+            return
+        end
+
+        local antenna = AntennaClient.byId[
+            tostring(id)
+        ]
+
+        if not antenna then
+            cb({
+                ok = false
+            })
+
+            return
+        end
+
+        TriggerServerEvent(
+            'cb_localradio:server:requestAntennaOperation',
+            'maintenance',
+            antenna.id
+        )
+
+        cb({
+            ok = true
+        })
+    end
+)
+
+RegisterNUICallback(
+    'antennaRemove',
+    function(data, cb)
+        local id = data
+            and data.id
+
+        if not id then
+            cb({
+                ok = false
+            })
+
+            return
+        end
+
+        local antenna = AntennaClient.byId[
+            tostring(id)
+        ]
+
+        if not antenna then
+            cb({
+                ok = false
+            })
+
+            return
+        end
+
+        TriggerServerEvent(
+            'cb_localradio:server:requestAntennaOperation',
+            'remove',
+            antenna.id
+        )
+
+        cb({
+            ok = true
+        })
+    end
+)
+
+RegisterNUICallback(
+    'antennaRefresh',
+    function(data, cb)
+        local id = data
+            and data.id
+
+        if not id then
+            cb({
+                ok = false
+            })
+
+            return
+        end
+
+        TriggerServerEvent(
+            'cb_localradio:server:openAntenna',
+            id
+        )
+
+        cb({
+            ok = true
+        })
+    end
+)
+
+RegisterNUICallback(
+    'antennaReady',
+    function(_, cb)
+        cb({
+            ok = true
+        })
+    end
+)
+
+RegisterNetEvent(
+    'cb_localradio:client:syncAntennas',
+    function(list)
+        for id, entity in pairs(
+            AntennaClient.entities
+        ) do
+
+            local stillExists = false
+
+            for _, antenna in ipairs(list or {}) do
+                if antenna.id == id then
+                    stillExists = true
+                    break
+                end
+            end
+
+            if not stillExists then
+                removePlayerProp(id)
+            end
+        end
+
+        AntennaClient.list = list or {}
+        AntennaClient.byId = {}
+
+        for _, antenna in ipairs(
+            AntennaClient.list
+        ) do
+
+            AntennaClient.byId[
+                antenna.id
+            ] = antenna
+
+            spawnPlayerProp(antenna)
+        end
+
+        updateBlips()
+
+        if AntennaClient.uiOpen then
+            if AntennaClient.selectedId
+                and not AntennaClient.byId[
+                    AntennaClient.selectedId
+                ] then
+
+                closeAntennaUI()
+            else
+                refreshAntennaUI()
+            end
+        end
+    end
+)
+
+RegisterNetEvent(
+    'cb_localradio:client:syncNetworks',
+    function(networks)
+        AntennaClient.networks = networks or {}
+    end
+)
 
 local function drawText3D(coords, text)
     local onScreen, x, y = World3dToScreen2d(
@@ -195,51 +676,67 @@ local function drawText3D(coords, text)
         return
     end
 
-    SetTextScale(0.30, 0.30)
+    SetTextScale(
+        0.30,
+        0.30
+    )
+
     SetTextFont(4)
     SetTextProportional(1)
-    SetTextColour(255, 255, 255, 230)
+
+    SetTextColour(
+        255,
+        255,
+        255,
+        230
+    )
+
     SetTextCentre(true)
     SetTextOutline()
 
-    BeginTextCommandDisplayText('STRING')
+    BeginTextCommandDisplayText(
+        'STRING'
+    )
+
     AddTextComponentString(text)
-    EndTextCommandDisplayText(x, y)
+
+    EndTextCommandDisplayText(
+        x,
+        y
+    )
 end
 
 local function drawAntennaStatus(a)
     local status = ('ANTENA %s | %d%% | %s'):format(
         typeLabel(a),
-        math.floor(tonumber(a.health) or 0),
+        math.floor(
+            tonumber(a.health) or 0
+        ),
         labelForState(a.state)
     )
 
     drawText3D(
-        vector3(a.x, a.y, a.z + 1.8),
+        vector3(
+            a.x,
+            a.y,
+            a.z + 1.8
+        ),
         status
     )
 end
 
 local function drawAntennaInteraction(a)
-    local health = tonumber(a.health) or 0
-
-    local text
-
-    if a.state == 'broken' or health <= 0 then
-        text = '[E] Reparar'
-    elseif health < Config.Antenna.degradation.minimumHealthBeforeMaintenance then
-        text = '[E] Reparar  [G] Mantenimiento'
-    else
-        text = '[G] Mantenimiento'
-    end
-
-    if a.type == 'player' then
-        text = text .. '  [H] Retirar'
+    if AntennaClient.uiOpen then
+        return
     end
 
     drawText3D(
-        vector3(a.x, a.y, a.z + 1.45),
-        text
+        vector3(
+            a.x,
+            a.y,
+            a.z + 1.45
+        ),
+        '[E] INTERACTUAR'
     )
 end
 
@@ -255,73 +752,8 @@ local function isPlayerNearAntenna(a)
         )
     )
 
-    return distance <= (Config.Antenna.interactionDistance + 1.5)
-end
-
-local function startRepair(a)
-    if interactionActive then
-        return
-    end
-
-    interactionActive = true
-
-    Bridge.Progress(
-        'cb_localradio_repair',
-        'Reparando antena...',
-        Config.Antenna.repair.duration,
-        Config.Antenna.repair.animation,
-
-        function()
-            TriggerServerEvent(
-                'cb_localradio:server:repair',
-                a.id
-            )
-
-            interactionActive = false
-        end,
-
-        function()
-            interactionActive = false
-        end
-    )
-end
-
-local function startMaintenance(a)
-    if interactionActive then
-        return
-    end
-
-    interactionActive = true
-
-    Bridge.Progress(
-        'cb_localradio_maintenance',
-        'Realizando mantenimiento...',
-        Config.Antenna.maintenance.duration,
-        Config.Antenna.maintenance.animation,
-
-        function()
-            TriggerServerEvent(
-                'cb_localradio:server:maintain',
-                a.id
-            )
-
-            interactionActive = false
-        end,
-
-        function()
-            interactionActive = false
-        end
-    )
-end
-
-local function removeAntenna(a)
-    if interactionActive then
-        return
-    end
-
-    TriggerServerEvent(
-        'cb_localradio:server:removeAntenna',
-        a.id
+    return distance <= (
+        Config.Antenna.interactionDistance + 1.5
     )
 end
 
@@ -330,53 +762,20 @@ local function handleAntennaInteraction(a)
         return
     end
 
+    if AntennaClient.uiOpen then
+        return
+    end
+
     if not isPlayerNearAntenna(a) then
         return
     end
 
-    local health = tonumber(a.health) or 0
+    if IsControlJustReleased(
+        0,
+        38
+    ) then
 
-    -- E
-    if IsControlJustReleased(0, 38) then
-        if a.state == 'broken' or health <= 0 then
-            startRepair(a)
-            return
-        end
-
-        if health < Config.Antenna.degradation.minimumHealthBeforeMaintenance then
-            startRepair(a)
-            return
-        end
-
-        Bridge.Notify(
-            'La antena no necesita reparacion.',
-            'info'
-        )
-
-        return
-    end
-
-    -- G
-    if IsControlJustReleased(0, 47) then
-        if health >= Config.Antenna.degradation.minimumHealthBeforeMaintenance then
-            Bridge.Notify(
-                'La antena no necesita mantenimiento todavia.',
-                'info'
-            )
-
-            return
-        end
-
-        startMaintenance(a)
-        return
-    end
-
-    -- H
-    if a.type == 'player'
-        and IsControlJustReleased(0, 74) then
-
-        removeAntenna(a)
-        return
+        requestAntennaTerminal()
     end
 end
 
@@ -387,12 +786,19 @@ CreateThread(function()
         local ped = PlayerPedId()
 
         if not IsEntityDead(ped)
-            and not IsPedInAnyVehicle(ped, false)
-            and not IsPauseMenuActive() then
+            and not IsPedInAnyVehicle(
+                ped,
+                false
+            )
+            and not IsPauseMenuActive()
+            and not AntennaClient.uiOpen then
 
             local coords = GetEntityCoords(ped)
 
-            for _, antenna in pairs(AntennaClient.list) do
+            for _, antenna in pairs(
+                AntennaClient.list
+            ) do
+
                 local antennaCoords = vector3(
                     antenna.x,
                     antenna.y,
@@ -403,13 +809,24 @@ CreateThread(function()
                     coords - antennaCoords
                 )
 
-                if distance <= Config.Antenna.interactionDistance + 1.5 then
+                if distance <= (
+                    Config.Antenna.interactionDistance
+                    + 1.5
+                ) then
+
                     wait = 0
 
-                    drawAntennaStatus(antenna)
-                    drawAntennaInteraction(antenna)
+                    drawAntennaStatus(
+                        antenna
+                    )
 
-                    handleAntennaInteraction(antenna)
+                    drawAntennaInteraction(
+                        antenna
+                    )
+
+                    handleAntennaInteraction(
+                        antenna
+                    )
                 end
             end
         end
@@ -424,7 +841,10 @@ CreateThread(function()
             local ped = PlayerPedId()
             local coords = GetEntityCoords(ped)
 
-            for _, antenna in pairs(AntennaClient.list) do
+            for _, antenna in pairs(
+                AntennaClient.list
+            ) do
+
                 local antennaCoords = vector3(
                     antenna.x,
                     antenna.y,
@@ -436,18 +856,26 @@ CreateThread(function()
                 )
 
                 if distance < Config.Radius.drawDistance then
-                    local color = Config.Radius.color.active
+                    local color =
+                        Config.Radius.color.active
 
-                    if antenna.state == 'maintenance' then
-                        color = Config.Radius.color.maintenance
+                    if antenna.state ==
+                        'maintenance' then
+
+                        color =
+                            Config.Radius.color.maintenance
                     end
 
-                    if antenna.state == 'broken' then
-                        color = Config.Radius.color.broken
+                    if antenna.state ==
+                        'broken' then
+
+                        color =
+                            Config.Radius.color.broken
                     end
 
                     DrawMarker(
                         1,
+
                         antenna.x,
                         antenna.y,
                         antenna.z - 1.0,
@@ -481,37 +909,84 @@ CreateThread(function()
             end
         end
 
-        Wait(Config.Radius.enabled and 0 or 1000)
+        Wait(
+            Config.Radius.enabled
+            and 0
+            or 1000
+        )
     end
 end)
 
-RegisterNetEvent('cb_localradio:client:antennaInteraction', function()
-    local ped = PlayerPedId()
-    local coords = GetEntityCoords(ped)
+RegisterNetEvent(
+    'cb_localradio:client:antennaInteraction',
+    function()
+        requestAntennaTerminal()
+    end
+)
 
-    local closest = nil
-    local closestDistance = nil
+CreateThread(function()
+    while true do
+        if AntennaClient.uiOpen then
+            local antenna =
+                AntennaClient.byId[
+                    AntennaClient.selectedId
+                ]
 
-    for _, antenna in pairs(AntennaClient.list) do
-        local antennaCoords = vector3(
-            antenna.x,
-            antenna.y,
-            antenna.z
-        )
+            if not antenna then
+                closeAntennaUI()
+            else
+                local ped = PlayerPedId()
+                local coords = GetEntityCoords(ped)
 
-        local distance = #(
-            coords - antennaCoords
-        )
+                local distance = #(
+                    coords - vector3(
+                        antenna.x,
+                        antenna.y,
+                        antenna.z
+                    )
+                )
 
-        if distance <= Config.Antenna.interactionDistance + 1.5 then
-            if not closestDistance or distance < closestDistance then
-                closest = antenna
-                closestDistance = distance
+                if distance > (
+                    Config.Antenna.interactionDistance
+                    + 2.0
+                ) then
+
+                    closeAntennaUI()
+                end
+            end
+
+            Wait(500)
+        else
+            Wait(1000)
+        end
+    end
+end)
+
+AddEventHandler(
+    'onClientResourceStop',
+    function(resource)
+        if resource ~= GetCurrentResourceName() then
+            return
+        end
+
+        closeAntennaUI()
+
+        for _, entity in pairs(
+            AntennaClient.entities or {}
+        ) do
+
+            if DoesEntityExist(entity) then
+                DeleteEntity(entity)
+            end
+        end
+
+        for _, blip in pairs(
+            AntennaClient.blips or {}
+        ) do
+
+            if DoesBlipExist(blip) then
+                RemoveBlip(blip)
             end
         end
     end
-
-    if closest then
-        handleAntennaInteraction(closest)
-    end
-end)
+)

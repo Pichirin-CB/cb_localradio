@@ -1,6 +1,8 @@
 RadioAntennas = {}
 RadioNetworks = {}
 
+local ActiveOperations = {}
+
 local function newId()
     return ('ant_%s_%s'):format(
         os.time(),
@@ -9,6 +11,8 @@ local function newId()
 end
 
 local function stateForHealth(health)
+    health = tonumber(health) or 0
+
     if health <= Config.Antenna.brokenAt then
         return 'broken'
     elseif health < Config.Antenna.maintenanceAt then
@@ -32,9 +36,42 @@ local function serialize(a)
         heading = a.heading,
         radius = a.radius,
 
-        health = a.health,
+        health = tonumber(a.health) or 0,
         state = a.state
     }
+end
+
+local function getPlayerCoords(source)
+    local ped = GetPlayerPed(source)
+
+    if not ped or ped <= 0 then
+        return nil
+    end
+
+    local coords = GetEntityCoords(ped)
+
+    if not coords then
+        return nil
+    end
+
+    return {
+        x = coords.x,
+        y = coords.y,
+        z = coords.z
+    }
+end
+
+local function isPlayerNearAntenna(source, antenna)
+    local coords = getPlayerCoords(source)
+
+    if not coords then
+        return false
+    end
+
+    return RadioUtils.distance(
+        coords,
+        antenna
+    ) <= Config.Antenna.interactionDistance + 1.5
 end
 
 local function loadWorld()
@@ -100,21 +137,23 @@ local function loadDatabase()
     )
 
     for _, row in ipairs(rows or {}) do
+        local health = tonumber(row.health) or 0
+
         RadioAntennas[row.id] = {
             id = row.id,
             type = row.type,
             owner = row.owner,
             model = row.model,
 
-            x = row.x,
-            y = row.y,
-            z = row.z,
+            x = tonumber(row.x) or 0,
+            y = tonumber(row.y) or 0,
+            z = tonumber(row.z) or 0,
 
-            heading = row.heading,
-            radius = row.radius,
+            heading = tonumber(row.heading) or 0,
+            radius = tonumber(row.radius) or 0,
 
-            health = row.health,
-            state = row.state
+            health = health,
+            state = row.state or stateForHealth(health)
         }
     end
 end
@@ -178,9 +217,13 @@ local function rebuildNetworks()
             visited[start.id] = true
 
             while #queue > 0 do
-                local current = table.remove(queue, 1)
+                local current = table.remove(
+                    queue,
+                    1
+                )
 
-                component[#component + 1] = current.id
+                component[#component + 1] =
+                    current.id
 
                 for _, other in ipairs(active) do
                     if not visited[other.id]
@@ -195,7 +238,8 @@ local function rebuildNetworks()
                 end
             end
 
-            RadioNetworks[networkIndex] = component
+            RadioNetworks[networkIndex] =
+                component
         end
     end
 end
@@ -203,7 +247,10 @@ end
 local function buildNetworkPayload()
     local payload = {}
 
-    for networkId, ids in pairs(RadioNetworks) do
+    for networkId, ids in pairs(
+        RadioNetworks
+    ) do
+
         local network = {
             id = networkId,
             antennas = ids,
@@ -273,6 +320,13 @@ local function buildCosts(operation)
         end
     end
 
+    table.sort(
+        required,
+        function(a, b)
+            return a.key < b.key
+        end
+    )
+
     return required
 end
 
@@ -297,7 +351,10 @@ local function checkItemCosts(source, operation)
     return true, required
 end
 
-local function consumeItemCosts(source, required)
+local function consumeItemCosts(
+    source,
+    required
+)
     local consumed = {}
 
     for _, cost in ipairs(required or {}) do
@@ -307,8 +364,10 @@ local function consumeItemCosts(source, required)
             cost.amount
         ) then
 
-            -- Roll back anything already consumed.
-            for _, rollback in ipairs(consumed) do
+            for _, rollback in ipairs(
+                consumed
+            ) do
+
                 ServerBridge.addItem(
                     source,
                     rollback.item,
@@ -328,11 +387,15 @@ local function consumeItemCosts(source, required)
     return true
 end
 
-local function consumeCosts(source, operation)
-    local available, required = checkItemCosts(
-        source,
-        operation
-    )
+local function consumeCosts(
+    source,
+    operation
+)
+    local available, required =
+        checkItemCosts(
+            source,
+            operation
+        )
 
     if not available then
         return false
@@ -342,6 +405,91 @@ local function consumeCosts(source, operation)
         source,
         required
     )
+end
+
+local function buildUICosts(
+    source,
+    operation
+)
+    local required = buildCosts(operation)
+
+    if not required then
+        return {}
+    end
+
+    local result = {}
+
+    for _, cost in ipairs(required) do
+        result[#result + 1] = {
+            key = cost.key,
+            item = cost.item,
+            amount = cost.amount,
+            available = ServerBridge.hasItem(
+                source,
+                cost.item,
+                cost.amount
+            )
+        }
+    end
+
+    return result
+end
+
+local function buildAntennaUIData(
+    source,
+    antenna
+)
+    local repairCosts =
+        buildUICosts(
+            source,
+            'repair'
+        )
+
+    local maintenanceCosts =
+        buildUICosts(
+            source,
+            'maintenance'
+        )
+
+    local canRepair =
+        antenna.state == 'broken'
+
+    local canMaintain =
+        antenna.state == 'maintenance'
+
+    local canRemove =
+        antenna.type == 'player'
+        and antenna.owner ==
+            ServerBridge.identifier(source)
+
+    return {
+        id = antenna.id,
+
+        type = antenna.type,
+        owner = antenna.owner,
+
+        model = antenna.model,
+
+        x = antenna.x,
+        y = antenna.y,
+        z = antenna.z,
+
+        heading = antenna.heading,
+        radius = antenna.radius,
+
+        health = tonumber(
+            antenna.health
+        ) or 0,
+
+        state = antenna.state,
+
+        canRepair = canRepair,
+        canMaintain = canMaintain,
+        canRemove = canRemove,
+
+        repairCosts = repairCosts,
+        maintenanceCosts = maintenanceCosts
+    }
 end
 
 -- ============================================================================
@@ -355,8 +503,12 @@ RegisterNetEvent(
 
         local list = {}
 
-        for _, antenna in pairs(RadioAntennas) do
-            list[#list + 1] = serialize(antenna)
+        for _, antenna in pairs(
+            RadioAntennas
+        ) do
+
+            list[#list + 1] =
+                serialize(antenna)
         end
 
         TriggerClientEvent(
@@ -374,6 +526,161 @@ RegisterNetEvent(
 )
 
 -- ============================================================================
+-- OPEN ANTENNA TERMINAL
+-- ============================================================================
+
+RegisterNetEvent(
+    'cb_localradio:server:openAntenna',
+    function(id)
+        local src = source
+
+        if not ServerBridge.ready() then
+            return
+        end
+
+        local antenna =
+            RadioAntennas[tostring(id)]
+
+        if not antenna then
+            return
+        end
+
+        if not isPlayerNearAntenna(
+            src,
+            antenna
+        ) then
+
+            ServerBridge.notify(
+                src,
+                Config.Messages.tooFar,
+                'error'
+            )
+
+            return
+        end
+
+        local data =
+            buildAntennaUIData(
+                src,
+                antenna
+            )
+
+        TriggerClientEvent(
+            'cb_localradio:client:openAntennaUI',
+            src,
+            {
+                antenna = data
+            }
+        )
+    end
+)
+
+-- ============================================================================
+-- ANTENNA OPERATION REQUEST
+-- ============================================================================
+
+RegisterNetEvent(
+    'cb_localradio:server:requestAntennaOperation',
+    function(operation, id)
+        local src = source
+
+        if type(operation) ~= 'string' then
+            return
+        end
+
+        if operation ~= 'repair'
+            and operation ~= 'maintenance'
+            and operation ~= 'remove' then
+
+            return
+        end
+
+        local antenna =
+            RadioAntennas[tostring(id)]
+
+        if not antenna then
+            return
+        end
+
+        if ActiveOperations[src] then
+            return
+        end
+
+        if not isPlayerNearAntenna(
+            src,
+            antenna
+        ) then
+
+            ServerBridge.notify(
+                src,
+                Config.Messages.tooFar,
+                'error'
+            )
+
+            return
+        end
+
+        if operation == 'repair' then
+            if antenna.state ~= 'broken' then
+                return
+            end
+        end
+
+        if operation == 'maintenance' then
+            if antenna.state ~= 'maintenance' then
+                ServerBridge.notify(
+                    src,
+                    RadioUtils.locale(
+                        'antenna_no_maintenance'
+                    ),
+                    'info'
+                )
+
+                return
+            end
+        end
+
+        if operation == 'remove' then
+            if antenna.type ~= 'player' then
+                ServerBridge.notify(
+                    src,
+                    Config.Messages.notOwner,
+                    'error'
+                )
+
+                return
+            end
+
+            local owner =
+                ServerBridge.identifier(src)
+
+            if antenna.owner ~= owner then
+                ServerBridge.notify(
+                    src,
+                    Config.Messages.notOwner,
+                    'error'
+                )
+
+                return
+            end
+        end
+
+        ActiveOperations[src] = {
+            operation = operation,
+            antennaId = antenna.id,
+            createdAt = os.time()
+        }
+
+        TriggerClientEvent(
+            'cb_localradio:client:antennaOperation',
+            src,
+            operation,
+            serialize(antenna)
+        )
+    end
+)
+
+-- ============================================================================
 -- CONSTRUCTION
 -- ============================================================================
 
@@ -383,7 +690,8 @@ RegisterNetEvent(
         local src = source
 
         if type(data) ~= 'table'
-            or not data.coords then
+            or type(data.coords) ~= 'table' then
+
             return
         end
 
@@ -392,13 +700,23 @@ RegisterNetEvent(
         end
 
         local coords = data.coords
-        local heading = tonumber(data.heading) or 0
 
-        -- Validate all construction materials first.
-        local available, required = checkItemCosts(
-            src,
-            'construction'
-        )
+        local x = tonumber(coords.x)
+        local y = tonumber(coords.y)
+        local z = tonumber(coords.z)
+
+        if not x or not y or not z then
+            return
+        end
+
+        local heading =
+            tonumber(data.heading) or 0.0
+
+        local available, required =
+            checkItemCosts(
+                src,
+                'construction'
+            )
 
         if not available then
             ServerBridge.notify(
@@ -410,9 +728,16 @@ RegisterNetEvent(
             return
         end
 
-        for _, a in pairs(RadioAntennas) do
+        for _, a in pairs(
+            RadioAntennas
+        ) do
+
             if RadioUtils.distance(
-                coords,
+                {
+                    x = x,
+                    y = y,
+                    z = z
+                },
                 a
             ) < Config.Antenna.minimumDistance then
 
@@ -427,7 +752,9 @@ RegisterNetEvent(
         end
 
         local id = newId()
-        local owner = ServerBridge.identifier(src)
+
+        local owner =
+            ServerBridge.identifier(src)
 
         local antenna = {
             id = id,
@@ -435,90 +762,87 @@ RegisterNetEvent(
             type = 'player',
             owner = owner,
 
-            model = Config.Antenna.playerModel,
+            model =
+                Config.Antenna.playerModel,
 
-            x = coords.x,
-            y = coords.y,
-            z = coords.z,
+            x = x,
+            y = y,
+            z = z,
 
             heading = heading,
 
-            radius = Config.Antenna.defaultRadius,
+            radius =
+                Config.Antenna.defaultRadius,
 
             health = 100.0,
             state = 'active'
         }
 
-        -- Insert the antenna first.
-        -- The inventory is only charged after the database operation
-        -- succeeds, preventing item loss if the database insert fails.
-        local insertId = MySQL.insert.await([[
-            INSERT INTO cb_localradio_antennas
-            (
+        local insertId =
+            MySQL.insert.await([[
+                INSERT INTO cb_localradio_antennas
+                (
+                    id,
+                    type,
+                    owner,
+                    model,
+                    x,
+                    y,
+                    z,
+                    heading,
+                    radius,
+                    health,
+                    state,
+                    last_maintenance,
+                    last_degradation
+                )
+                VALUES (
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    NOW(),
+                    NOW()
+                )
+            ]], {
                 id,
-                type,
-                owner,
-                model,
-                x,
-                y,
-                z,
-                heading,
-                radius,
-                health,
-                state,
-                last_maintenance,
-                last_degradation
-            )
-            VALUES (
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                NOW(),
-                NOW()
-            )
-        ]], {
-            id,
-            antenna.type,
-            antenna.owner,
-            antenna.model,
+                antenna.type,
+                antenna.owner,
+                antenna.model,
 
-            antenna.x,
-            antenna.y,
-            antenna.z,
+                antenna.x,
+                antenna.y,
+                antenna.z,
 
-            antenna.heading,
-            antenna.radius,
+                antenna.heading,
+                antenna.radius,
 
-            antenna.health,
-            antenna.state
-        })
+                antenna.health,
+                antenna.state
+            })
 
         if not insertId then
             ServerBridge.notify(
                 src,
-                Config.Messages.noItems,
+                'No se pudo guardar la antena.',
                 'error'
             )
 
             return
         end
 
-        -- Consume the complete construction cost.
         if not consumeItemCosts(
             src,
             required
         ) then
 
-            -- Database succeeded but inventory failed.
-            -- Remove the antenna again so the operation remains atomic.
             MySQL.update.await(
                 'DELETE FROM cb_localradio_antennas WHERE id = ?',
                 {
@@ -535,10 +859,10 @@ RegisterNetEvent(
             return
         end
 
-        RadioAntennas[id] = antenna
+        RadioAntennas[id] =
+            antenna
 
         rebuildNetworks()
-
         broadcast()
 
         TriggerClientEvent(
@@ -560,7 +884,9 @@ RegisterNetEvent(
 -- ============================================================================
 
 local function getAntenna(id)
-    return RadioAntennas[tostring(id)]
+    return RadioAntennas[
+        tostring(id)
+    ]
 end
 
 -- ============================================================================
@@ -572,33 +898,30 @@ RegisterNetEvent(
     function(id)
         local src = source
 
-        local antenna = getAntenna(id)
+        local operation =
+            ActiveOperations[src]
+
+        if not operation
+            or operation.operation ~= 'repair'
+            or tostring(operation.antennaId)
+                ~= tostring(id) then
+
+            return
+        end
+
+        ActiveOperations[src] = nil
+
+        local antenna =
+            getAntenna(id)
 
         if not antenna then
             return
         end
 
-        if antenna.type ~= 'world'
-            and antenna.type ~= 'player' then
-            return
-        end
-
-        local ped = GetPlayerPed(src)
-
-        if ped <= 0 then
-            return
-        end
-
-        local p = GetEntityCoords(ped)
-
-        if RadioUtils.distance(
-            {
-                x = p.x,
-                y = p.y,
-                z = p.z
-            },
+        if not isPlayerNearAntenna(
+            src,
             antenna
-        ) > Config.Antenna.interactionDistance + 1.5 then
+        ) then
 
             ServerBridge.notify(
                 src,
@@ -613,7 +936,6 @@ RegisterNetEvent(
             return
         end
 
-        -- Check every repair material before consuming anything.
         if not consumeCosts(
             src,
             'repair'
@@ -628,20 +950,27 @@ RegisterNetEvent(
             return
         end
 
-        antenna.health = math.min(
-            100.0,
-            antenna.health
+        antenna.health =
+            math.min(
+                100.0,
+                (
+                    tonumber(
+                        antenna.health
+                    ) or 0
+                )
                 + Config.Antenna.repair.health
-        )
+            )
 
-        antenna.state = stateForHealth(
-            antenna.health
-        )
+        antenna.state =
+            stateForHealth(
+                antenna.health
+            )
 
-        saveAntenna(antenna)
+        saveAntenna(
+            antenna
+        )
 
         rebuildNetworks()
-
         broadcast()
 
         TriggerClientEvent(
@@ -654,7 +983,9 @@ RegisterNetEvent(
             src,
             RadioUtils.locale(
                 'antenna_repaired',
-                math.floor(antenna.health)
+                math.floor(
+                    antenna.health
+                )
             ),
             'success'
         )
@@ -670,28 +1001,30 @@ RegisterNetEvent(
     function(id)
         local src = source
 
-        local antenna = getAntenna(id)
+        local operation =
+            ActiveOperations[src]
+
+        if not operation
+            or operation.operation ~= 'maintenance'
+            or tostring(operation.antennaId)
+                ~= tostring(id) then
+
+            return
+        end
+
+        ActiveOperations[src] = nil
+
+        local antenna =
+            getAntenna(id)
 
         if not antenna then
             return
         end
 
-        local ped = GetPlayerPed(src)
-
-        if ped <= 0 then
-            return
-        end
-
-        local p = GetEntityCoords(ped)
-
-        if RadioUtils.distance(
-            {
-                x = p.x,
-                y = p.y,
-                z = p.z
-            },
+        if not isPlayerNearAntenna(
+            src,
             antenna
-        ) > Config.Antenna.interactionDistance + 1.5 then
+        ) then
 
             ServerBridge.notify(
                 src,
@@ -702,9 +1035,7 @@ RegisterNetEvent(
             return
         end
 
-        if antenna.health
-            >= Config.Antenna.degradation.minimumHealthBeforeMaintenance then
-
+        if antenna.state ~= 'maintenance' then
             ServerBridge.notify(
                 src,
                 RadioUtils.locale(
@@ -716,7 +1047,6 @@ RegisterNetEvent(
             return
         end
 
-        -- Check every maintenance material before consuming anything.
         if not consumeCosts(
             src,
             'maintenance'
@@ -731,20 +1061,27 @@ RegisterNetEvent(
             return
         end
 
-        antenna.health = math.min(
-            100.0,
-            antenna.health
+        antenna.health =
+            math.min(
+                100.0,
+                (
+                    tonumber(
+                        antenna.health
+                    ) or 0
+                )
                 + Config.Antenna.maintenance.health
-        )
+            )
 
-        antenna.state = stateForHealth(
-            antenna.health
-        )
+        antenna.state =
+            stateForHealth(
+                antenna.health
+            )
 
-        saveAntenna(antenna)
+        saveAntenna(
+            antenna
+        )
 
         rebuildNetworks()
-
         broadcast()
 
         TriggerClientEvent(
@@ -757,7 +1094,9 @@ RegisterNetEvent(
             src,
             RadioUtils.locale(
                 'antenna_maintained',
-                math.floor(antenna.health)
+                math.floor(
+                    antenna.health
+                )
             ),
             'success'
         )
@@ -773,29 +1112,32 @@ RegisterNetEvent(
     function(id)
         local src = source
 
-        local antenna = getAntenna(id)
+        local operation =
+            ActiveOperations[src]
+
+        if not operation
+            or operation.operation ~= 'remove'
+            or tostring(operation.antennaId)
+                ~= tostring(id) then
+
+            return
+        end
+
+        ActiveOperations[src] = nil
+
+        local antenna =
+            getAntenna(id)
 
         if not antenna
             or antenna.type ~= 'player' then
+
             return
         end
 
-        local ped = GetPlayerPed(src)
-
-        if ped <= 0 then
-            return
-        end
-
-        local p = GetEntityCoords(ped)
-
-        if RadioUtils.distance(
-            {
-                x = p.x,
-                y = p.y,
-                z = p.z
-            },
+        if not isPlayerNearAntenna(
+            src,
             antenna
-        ) > Config.Antenna.interactionDistance + 1.5 then
+        ) then
 
             ServerBridge.notify(
                 src,
@@ -806,7 +1148,8 @@ RegisterNetEvent(
             return
         end
 
-        local owner = ServerBridge.identifier(src)
+        local owner =
+            ServerBridge.identifier(src)
 
         if antenna.owner ~= owner then
             ServerBridge.notify(
@@ -818,40 +1161,45 @@ RegisterNetEvent(
             return
         end
 
-        local affected = MySQL.update.await(
-            'DELETE FROM cb_localradio_antennas WHERE id = ?',
-            {
-                id
-            }
-        )
+        local affected =
+            MySQL.update.await(
+                'DELETE FROM cb_localradio_antennas WHERE id = ?',
+                {
+                    id
+                }
+            )
 
-        if not affected or affected < 1 then
+        if not affected
+            or affected < 1 then
+
             return
         end
 
         RadioAntennas[id] = nil
 
-        -- Recuperacion del kit de antena.
-        --
-        -- returnPercent funciona como una probabilidad:
-        -- 0   = 0%
-        -- 75  = 75%
-        -- 100 = 100%
-        if Config.Antenna.construction.itemReturnOnRemove then
-            local returnPercent = tonumber(
-                Config.Antenna.construction.returnPercent
-            ) or 0
+        if Config.Antenna.construction
+            .itemReturnOnRemove then
 
-            returnPercent = math.max(
-                0,
-                math.min(
-                    100,
-                    returnPercent
+            local returnPercent =
+                tonumber(
+                    Config.Antenna.construction
+                        .returnPercent
+                ) or 0
+
+            returnPercent =
+                math.max(
+                    0,
+                    math.min(
+                        100,
+                        returnPercent
+                    )
                 )
-            )
 
             if returnPercent > 0
-                and math.random(1, 100) <= returnPercent then
+                and math.random(
+                    1,
+                    100
+                ) <= returnPercent then
 
                 ServerBridge.addItem(
                     src,
@@ -862,7 +1210,6 @@ RegisterNetEvent(
         end
 
         rebuildNetworks()
-
         broadcast()
 
         TriggerClientEvent(
@@ -923,50 +1270,65 @@ CreateThread(function()
         Wait(60000)
 
         if Config.Antenna.degradation.enabled then
-            for _, antenna in pairs(RadioAntennas) do
-                if antenna.state ~= 'broken' then
-                    local row = MySQL.single.await(
-                        [[
-                            SELECT TIMESTAMPDIFF(
-                                MINUTE,
-                                COALESCE(
-                                    last_degradation,
-                                    NOW()
-                                ),
-                                NOW()
-                            ) AS minutes
-                            FROM cb_localradio_antennas
-                            WHERE id = ?
-                        ]],
-                        {
-                            antenna.id
-                        }
-                    )
+            for _, antenna in pairs(
+                RadioAntennas
+            ) do
 
-                    local minutes = row
-                        and tonumber(row.minutes)
+                if antenna.state ~= 'broken' then
+                    local row =
+                        MySQL.single.await(
+                            [[
+                                SELECT TIMESTAMPDIFF(
+                                    MINUTE,
+                                    COALESCE(
+                                        last_degradation,
+                                        NOW()
+                                    ),
+                                    NOW()
+                                ) AS minutes
+                                FROM cb_localradio_antennas
+                                WHERE id = ?
+                            ]],
+                            {
+                                antenna.id
+                            }
+                        )
+
+                    local minutes =
+                        row
+                        and tonumber(
+                            row.minutes
+                        )
                         or 0
 
-                    if minutes
-                        >= Config.Antenna.degradation.intervalMinutes then
+                    if minutes >=
+                        Config.Antenna.degradation
+                            .intervalMinutes then
 
-                        local cycles = math.floor(
-                            minutes
-                            / Config.Antenna.degradation.intervalMinutes
-                        )
+                        local cycles =
+                            math.floor(
+                                minutes
+                                / Config.Antenna
+                                    .degradation
+                                    .intervalMinutes
+                            )
 
-                        antenna.health = math.max(
-                            0,
-                            antenna.health
+                        antenna.health =
+                            math.max(
+                                0,
+                                antenna.health
                                 - (
-                                    Config.Antenna.degradation.amount
+                                    Config.Antenna
+                                        .degradation
+                                        .amount
                                     * cycles
                                 )
-                        )
+                            )
 
-                        antenna.state = stateForHealth(
-                            antenna.health
-                        )
+                        antenna.state =
+                            stateForHealth(
+                                antenna.health
+                            )
 
                         MySQL.update.await(
                             [[
@@ -988,7 +1350,6 @@ CreateThread(function()
             end
 
             rebuildNetworks()
-
             broadcast()
 
             TriggerClientEvent(
@@ -999,3 +1360,16 @@ CreateThread(function()
         end
     end
 end)
+
+-- ============================================================================
+-- PLAYER CLEANUP
+-- ============================================================================
+
+AddEventHandler(
+    'playerDropped',
+    function()
+        local src = source
+
+        ActiveOperations[src] = nil
+    end
+)
