@@ -39,6 +39,19 @@ let dragPointerId = null;
 let dragOffsetX = 0;
 let dragOffsetY = 0;
 
+/* ============================================================
+   ANTENNA TERMINAL
+============================================================ */
+
+let antennaTerminalOpen = false;
+let currentAntenna = null;
+let currentAntennaId = null;
+let antennaBusy = false;
+
+/* ============================================================
+   HELPERS
+============================================================ */
+
 function post(event, data = {}) {
     return fetch(
         `https://${resource}/${event}`,
@@ -103,8 +116,16 @@ function applyLocale(data = {}) {
         });
 }
 
+/* ============================================================
+   RADIO STATE
+============================================================ */
+
 function renderSignal(signal) {
     currentSignal = Boolean(signal);
+
+    if (!led || !signalText) {
+        return;
+    }
 
     if (currentSignal) {
         led.classList.add('ok');
@@ -124,6 +145,10 @@ function renderSignal(signal) {
 function renderConnection(connected) {
     currentConnected = Boolean(connected);
 
+    if (!networkState) {
+        return;
+    }
+
     if (currentConnected) {
         networkState.textContent = translate(
             'connected'
@@ -142,6 +167,10 @@ function renderConnection(connected) {
 function renderFrequency(value) {
     currentFrequency = Number(value) || 0;
 
+    if (!frequency) {
+        return;
+    }
+
     frequency.textContent = currentFrequency
         ? currentFrequency.toFixed(1)
         : '000.0';
@@ -156,8 +185,13 @@ function renderVolume(value) {
         )
     );
 
-    volume.value = numeric;
-    volumeValue.textContent = `${numeric}%`;
+    if (volume) {
+        volume.value = numeric;
+    }
+
+    if (volumeValue) {
+        volumeValue.textContent = `${numeric}%`;
+    }
 }
 
 function changeFrequency(delta) {
@@ -230,6 +264,13 @@ function savePosition() {
 }
 
 function clampPosition(x, y) {
+    if (!device) {
+        return {
+            x,
+            y
+        };
+    }
+
     const width = device.offsetWidth;
     const height = device.offsetHeight;
 
@@ -270,21 +311,22 @@ function clampPosition(x, y) {
 }
 
 function positionToPixels() {
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-
     return {
         x:
-            viewportWidth *
+            window.innerWidth *
             (position.x / 100),
 
         y:
-            viewportHeight *
+            window.innerHeight *
             (position.y / 100)
     };
 }
 
 function applyPosition() {
+    if (!device) {
+        return;
+    }
+
     const pixels = positionToPixels();
 
     const clamped = clampPosition(
@@ -307,6 +349,10 @@ function applyPosition() {
 }
 
 function centerPosition() {
+    if (!device) {
+        return;
+    }
+
     const width = device.offsetWidth;
     const height = device.offsetHeight;
 
@@ -335,6 +381,10 @@ function centerPosition() {
 }
 
 function startDrag(event) {
+    if (!device || !dragHandle) {
+        return;
+    }
+
     if (
         event.button !== undefined &&
         event.button !== 0
@@ -362,7 +412,6 @@ function startDrag(event) {
         event.clientY - rect.top;
 
     device.classList.add('dragging');
-
     dragHandle.classList.add('dragging');
 
     dragHandle.setPointerCapture(
@@ -375,7 +424,8 @@ function startDrag(event) {
 function moveDrag(event) {
     if (
         !dragging ||
-        event.pointerId !== dragPointerId
+        event.pointerId !== dragPointerId ||
+        !device
     ) {
         return;
     }
@@ -413,11 +463,17 @@ function stopDrag(event) {
 
     dragging = false;
 
-    device.classList.remove('dragging');
-    dragHandle.classList.remove('dragging');
+    if (device) {
+        device.classList.remove('dragging');
+    }
+
+    if (dragHandle) {
+        dragHandle.classList.remove('dragging');
+    }
 
     try {
         if (
+            dragHandle &&
             dragHandle.hasPointerCapture(
                 dragPointerId
             )
@@ -435,6 +491,511 @@ function stopDrag(event) {
     savePosition();
 }
 
+/* ============================================================
+   ANTENNA HELPERS
+============================================================ */
+
+function getAntennaElement(id) {
+    if (!id) {
+        return null;
+    }
+
+    return document.querySelector(
+        `[data-antenna-id="${CSS.escape(String(id))}"]`
+    );
+}
+
+function antennaStateLabel(state) {
+    switch (state) {
+        case 'active':
+            return translate('antenna_state_active');
+
+        case 'maintenance':
+            return translate('antenna_state_maintenance');
+
+        case 'broken':
+            return translate('antenna_state_broken');
+
+        default:
+            return translate('antenna_state_offline');
+    }
+}
+
+function antennaTypeLabel(type) {
+    if (type === 'world') {
+        return translate('antenna_type_world');
+    }
+
+    return translate('antenna_type_player');
+}
+
+function antennaHealthClass(health) {
+    const value = Number(health) || 0;
+
+    if (value <= 0) {
+        return 'critical';
+    }
+
+    if (value < 30) {
+        return 'critical';
+    }
+
+    if (value < 60) {
+        return 'warning';
+    }
+
+    return 'good';
+}
+
+function formatHealth(value) {
+    const health = Math.max(
+        0,
+        Math.min(
+            100,
+            Number(value) || 0
+        )
+    );
+
+    return Math.floor(health);
+}
+
+function renderAntennaHealth(health) {
+    const numeric = formatHealth(health);
+
+    const valueElement =
+        document.getElementById('antennaHealthValue');
+
+    const barElement =
+        document.getElementById('antennaHealthBar');
+
+    const container =
+        document.getElementById('antennaHealth');
+
+    if (valueElement) {
+        valueElement.textContent =
+            `${numeric}%`;
+    }
+
+    if (barElement) {
+        barElement.style.width =
+            `${numeric}%`;
+
+        barElement.classList.remove(
+            'good',
+            'warning',
+            'critical'
+        );
+
+        barElement.classList.add(
+            antennaHealthClass(numeric)
+        );
+    }
+
+    if (container) {
+        container.classList.remove(
+            'good',
+            'warning',
+            'critical'
+        );
+
+        container.classList.add(
+            antennaHealthClass(numeric)
+        );
+    }
+}
+
+function setAntennaText(id, value) {
+    const element = document.getElementById(id);
+
+    if (!element) {
+        return;
+    }
+
+    element.textContent =
+        value === undefined ||
+        value === null ||
+        value === ''
+            ? '--'
+            : value;
+}
+
+function renderAntennaState(antenna) {
+    if (!antenna) {
+        return;
+    }
+
+    const state =
+        antenna.state || 'offline';
+
+    const stateElement =
+        document.getElementById('antennaState');
+
+    if (stateElement) {
+        stateElement.textContent =
+            antennaStateLabel(state);
+
+        stateElement.classList.remove(
+            'active',
+            'maintenance',
+            'broken',
+            'offline'
+        );
+
+        stateElement.classList.add(state);
+    }
+
+    setAntennaText(
+        'antennaType',
+        antennaTypeLabel(antenna.type)
+    );
+
+    setAntennaText(
+        'antennaOwner',
+        antenna.owner || translate('antenna_system')
+    );
+
+    setAntennaText(
+        'antennaRadius',
+        antenna.radius
+            ? `${Math.floor(Number(antenna.radius))}m`
+            : '--'
+    );
+
+    setAntennaText(
+        'antennaStatus',
+        antennaStateLabel(state)
+    );
+
+    renderAntennaHealth(
+        antenna.health
+    );
+}
+
+function renderAntennaSignal(antenna) {
+    if (!antenna) {
+        return;
+    }
+
+    const signal =
+        antenna.signal !== undefined
+            ? Boolean(antenna.signal)
+            : antenna.state === 'active';
+
+    const signalElement =
+        document.getElementById('antennaSignal');
+
+    if (!signalElement) {
+        return;
+    }
+
+    signalElement.textContent = signal
+        ? translate('signal_ok')
+        : translate('signal_none');
+
+    signalElement.classList.toggle(
+        'active',
+        signal
+    );
+
+    signalElement.classList.toggle(
+        'offline',
+        !signal
+    );
+}
+
+function renderAntennaMaterials(materials) {
+    const container =
+        document.getElementById('antennaMaterials');
+
+    if (!container) {
+        return;
+    }
+
+    container.innerHTML = '';
+
+    if (
+        !materials ||
+        typeof materials !== 'object'
+    ) {
+        return;
+    }
+
+    Object.entries(materials).forEach(
+        ([key, material]) => {
+
+            const row =
+                document.createElement('div');
+
+            row.className =
+                'antenna-material';
+
+            const label =
+                document.createElement('span');
+
+            label.className =
+                'antenna-material-label';
+
+            label.textContent =
+                material.label ||
+                key;
+
+            const amount =
+                document.createElement('span');
+
+            amount.className =
+                'antenna-material-amount';
+
+            const required =
+                Number(material.required) || 0;
+
+            const available =
+                Number(material.available) || 0;
+
+            amount.textContent =
+                `${available}/${required}`;
+
+            if (available < required) {
+                row.classList.add('missing');
+            } else {
+                row.classList.add('available');
+            }
+
+            row.appendChild(label);
+            row.appendChild(amount);
+
+            container.appendChild(row);
+        }
+    );
+}
+
+function canPerformAntennaOperation(
+    operation,
+    antenna
+) {
+    if (
+        antennaBusy ||
+        !antenna
+    ) {
+        return false;
+    }
+
+    const health =
+        Number(antenna.health) || 0;
+
+    if (operation === 'repair') {
+        return antenna.state === 'broken' ||
+            health <= 0;
+    }
+
+    if (operation === 'maintenance') {
+        return health <
+            95;
+    }
+
+    if (operation === 'remove') {
+        return antenna.type === 'player';
+    }
+
+    return false;
+}
+
+function setAntennaBusy(value) {
+    antennaBusy = Boolean(value);
+
+    document
+        .querySelectorAll(
+            '[data-antenna-operation]'
+        )
+        .forEach(button => {
+            button.disabled =
+                antennaBusy;
+        });
+}
+
+function updateAntennaButtons(antenna) {
+    document
+        .querySelectorAll(
+            '[data-antenna-operation]'
+        )
+        .forEach(button => {
+
+            const operation =
+                button.dataset.antennaOperation;
+
+            let allowed =
+                canPerformAntennaOperation(
+                    operation,
+                    antenna
+                );
+
+            if (
+                operation === 'remove' &&
+                antenna.type !== 'player'
+            ) {
+                allowed = false;
+            }
+
+            button.disabled =
+                !allowed ||
+                antennaBusy;
+        });
+}
+
+function openAntennaTerminal(data) {
+    antennaTerminalOpen = true;
+
+    currentAntennaId =
+        data.antennaId ||
+        data.id ||
+        null;
+
+    currentAntenna =
+        data.antenna ||
+        data;
+
+    const terminal =
+        document.getElementById(
+            'antennaTerminal'
+        );
+
+    if (terminal) {
+        terminal.classList.remove('hidden');
+
+        terminal.setAttribute(
+            'aria-hidden',
+            'false'
+        );
+    }
+
+    renderAntennaState(
+        currentAntenna
+    );
+
+    renderAntennaSignal(
+        currentAntenna
+    );
+
+    renderAntennaMaterials(
+        data.materials
+    );
+
+    updateAntennaButtons(
+        currentAntenna
+    );
+}
+
+function closeAntennaTerminal(sendCallback = true) {
+    antennaTerminalOpen = false;
+    currentAntenna = null;
+    currentAntennaId = null;
+    antennaBusy = false;
+
+    const terminal =
+        document.getElementById(
+            'antennaTerminal'
+        );
+
+    if (terminal) {
+        terminal.classList.add('hidden');
+
+        terminal.setAttribute(
+            'aria-hidden',
+            'true'
+        );
+    }
+
+    if (sendCallback) {
+        post('closeAntenna');
+    }
+}
+
+function refreshAntennaTerminal(data) {
+    if (!antennaTerminalOpen) {
+        return;
+    }
+
+    if (
+        data &&
+        data.antenna
+    ) {
+        currentAntenna =
+            data.antenna;
+    } else if (
+        data &&
+        data.id &&
+        currentAntenna &&
+        data.id === currentAntenna.id
+    ) {
+        currentAntenna = {
+            ...currentAntenna,
+            ...data
+        };
+    } else if (
+        data &&
+        currentAntenna
+    ) {
+        currentAntenna = {
+            ...currentAntenna,
+            ...data
+        };
+    }
+
+    renderAntennaState(
+        currentAntenna
+    );
+
+    renderAntennaSignal(
+        currentAntenna
+    );
+
+    if (data && data.materials) {
+        renderAntennaMaterials(
+            data.materials
+        );
+    }
+
+    updateAntennaButtons(
+        currentAntenna
+    );
+}
+
+function requestAntennaOperation(operation) {
+    if (
+        !currentAntennaId ||
+        !currentAntenna
+    ) {
+        return;
+    }
+
+    if (
+        !canPerformAntennaOperation(
+            operation,
+            currentAntenna
+        )
+    ) {
+        return;
+    }
+
+    setAntennaBusy(true);
+
+    post(
+        'antennaOperation',
+        {
+            antennaId: currentAntennaId,
+            operation
+        }
+    ).catch(() => {
+        setAntennaBusy(false);
+        updateAntennaButtons(
+            currentAntenna
+        );
+    });
+}
+
+/* ============================================================
+   LOAD / POSITION
+============================================================ */
+
 loadPosition();
 
 window.addEventListener(
@@ -445,60 +1006,67 @@ window.addEventListener(
     }
 );
 
-dragHandle.addEventListener(
-    'pointerdown',
-    startDrag
-);
+if (dragHandle) {
+    dragHandle.addEventListener(
+        'pointerdown',
+        startDrag
+    );
 
-dragHandle.addEventListener(
-    'pointermove',
-    moveDrag
-);
+    dragHandle.addEventListener(
+        'pointermove',
+        moveDrag
+    );
 
-dragHandle.addEventListener(
-    'pointerup',
-    stopDrag
-);
+    dragHandle.addEventListener(
+        'pointerup',
+        stopDrag
+    );
 
-dragHandle.addEventListener(
-    'pointercancel',
-    stopDrag
-);
+    dragHandle.addEventListener(
+        'pointercancel',
+        stopDrag
+    );
 
-/*
- * Double-click the radio header to restore
- * the interface to the center of the screen.
- */
-dragHandle.addEventListener(
-    'dblclick',
-    event => {
+    /*
+     * Double-click the radio header to restore
+     * the interface to the center of the screen.
+     */
+    dragHandle.addEventListener(
+        'dblclick',
+        event => {
 
-        if (
-            event.target.closest(
-                'button, input, a'
-            )
-        ) {
-            return;
+            if (
+                event.target.closest(
+                    'button, input, a'
+                )
+            ) {
+                return;
+            }
+
+            centerPosition();
         }
-
-        centerPosition();
-    }
-);
+    );
+}
 
 /* ============================================================
-   BUTTONS
+   RADIO BUTTONS
 ============================================================ */
 
-document
-    .getElementById('close')
-    .addEventListener(
+const closeButton =
+    document.getElementById('close');
+
+if (closeButton) {
+    closeButton.addEventListener(
         'click',
         () => post('close')
     );
+}
 
-document
-    .getElementById('join')
-    .addEventListener(
+const joinButton =
+    document.getElementById('join');
+
+if (joinButton) {
+    joinButton.addEventListener(
         'click',
         () => post(
             'join',
@@ -507,47 +1075,61 @@ document
             }
         )
     );
+}
 
-document
-    .getElementById('leave')
-    .addEventListener(
+const leaveButton =
+    document.getElementById('leave');
+
+if (leaveButton) {
+    leaveButton.addEventListener(
         'click',
         () => post('leave')
     );
+}
 
-document
-    .getElementById('up')
-    .addEventListener(
+const upButton =
+    document.getElementById('up');
+
+if (upButton) {
+    upButton.addEventListener(
         'click',
         () => changeFrequency(1)
     );
+}
 
-document
-    .getElementById('down')
-    .addEventListener(
+const downButton =
+    document.getElementById('down');
+
+if (downButton) {
+    downButton.addEventListener(
         'click',
         () => changeFrequency(-1)
     );
+}
 
-volume.addEventListener(
-    'input',
-    () => {
+if (volume) {
+    volume.addEventListener(
+        'input',
+        () => {
 
-        volumeValue.textContent =
-            `${volume.value}%`;
+            volumeValue.textContent =
+                `${volume.value}%`;
 
-        post(
-            'volume',
-            {
-                volume: Number(volume.value)
-            }
-        );
-    }
-);
+            post(
+                'volume',
+                {
+                    volume: Number(volume.value)
+                }
+            );
+        }
+    );
+}
 
-document
-    .getElementById('channel')
-    .addEventListener(
+const channelButton =
+    document.getElementById('channel');
+
+if (channelButton) {
+    channelButton.addEventListener(
         'click',
         () => post(
             'frequency',
@@ -556,6 +1138,55 @@ document
             }
         )
     );
+}
+
+/* ============================================================
+   ANTENNA BUTTONS
+============================================================ */
+
+document
+    .querySelectorAll(
+        '[data-antenna-operation]'
+    )
+    .forEach(button => {
+
+        button.addEventListener(
+            'click',
+            () => {
+
+                const operation =
+                    button.dataset.antennaOperation;
+
+                requestAntennaOperation(
+                    operation
+                );
+            }
+        );
+    });
+
+const antennaClose =
+    document.getElementById(
+        'antennaClose'
+    );
+
+if (antennaClose) {
+    antennaClose.addEventListener(
+        'click',
+        () => closeAntennaTerminal()
+    );
+}
+
+const antennaBack =
+    document.getElementById(
+        'antennaBack'
+    );
+
+if (antennaBack) {
+    antennaBack.addEventListener(
+        'click',
+        () => closeAntennaTerminal()
+    );
+}
 
 /* ============================================================
    KEYBOARD
@@ -564,6 +1195,24 @@ document
 document.addEventListener(
     'keydown',
     event => {
+
+        if (
+            antennaTerminalOpen &&
+            event.key === 'Escape'
+        ) {
+            event.preventDefault();
+
+            closeAntennaTerminal();
+
+            return;
+        }
+
+        if (
+            antennaTerminalOpen &&
+            event.key === 'Enter'
+        ) {
+            return;
+        }
 
         if (event.key === 'Escape') {
             post('close');
@@ -609,7 +1258,15 @@ window.addEventListener(
             applyLocale(data);
         }
 
+        /* ----------------------------------------------------
+           RADIO
+        ---------------------------------------------------- */
+
         if (data.action === 'open') {
+
+            if (!radio) {
+                return;
+            }
 
             radio.classList.remove('hidden');
 
@@ -643,6 +1300,10 @@ window.addEventListener(
         }
 
         if (data.action === 'close') {
+
+            if (!radio) {
+                return;
+            }
 
             radio.classList.add('hidden');
 
@@ -701,6 +1362,66 @@ window.addEventListener(
                 data.frequency ||
                 currentFrequency
             );
+        }
+
+        /* ----------------------------------------------------
+           ANTENNA TERMINAL
+        ---------------------------------------------------- */
+
+        if (
+            data.action === 'antennaOpen' ||
+            data.action === 'openAntenna'
+        ) {
+            openAntennaTerminal(data);
+        }
+
+        if (
+            data.action === 'antennaClose' ||
+            data.action === 'closeAntenna'
+        ) {
+            closeAntennaTerminal(false);
+        }
+
+        if (
+            data.action === 'antennaState' ||
+            data.action === 'antennaUpdate' ||
+            data.action === 'antennaRefresh'
+        ) {
+            setAntennaBusy(false);
+
+            refreshAntennaTerminal(data);
+        }
+
+        if (
+            data.action === 'antennaOperation'
+        ) {
+            setAntennaBusy(
+                Boolean(data.busy)
+            );
+
+            if (data.antenna) {
+                refreshAntennaTerminal(
+                    data
+                );
+            }
+        }
+
+        if (
+            data.action === 'antennaOperationResult'
+        ) {
+            setAntennaBusy(false);
+
+            if (data.antenna) {
+                refreshAntennaTerminal(
+                    data
+                );
+            }
+
+            if (
+                data.close === true
+            ) {
+                closeAntennaTerminal(false);
+            }
         }
     }
 );
