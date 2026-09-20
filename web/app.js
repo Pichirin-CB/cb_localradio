@@ -94,6 +94,11 @@ function post(event, data = {}) {
    TRANSLATIONS
 ============================================================ */
 
+/*
+ * The HTML uses descriptive keys while the Lua locale uses
+ * shorter internal keys. These aliases keep the UI compatible
+ * with both without hardcoding a language into the interface.
+ */
 const TRANSLATION_ALIASES = {
     antenna_terminal_title: 'antenna_ui_title',
     antenna_terminal_subtitle: 'antenna_ui_subtitle',
@@ -109,10 +114,6 @@ const TRANSLATION_ALIASES = {
     antenna_state_broken: 'antenna_broken_state',
     antenna_state_offline: 'antenna_network_offline',
 
-    close_antenna: 'antenna_close',
-
-    antenna_repair_kit: 'antenna_repair',
-
     antenna_resources: 'antenna_materials',
 
     antenna_repair_description:
@@ -122,113 +123,192 @@ const TRANSLATION_ALIASES = {
         'antenna_maintenance_hint',
 
     antenna_remove_description:
-        'antenna_remove_hint'
+        'antenna_remove_hint',
+
+    antenna_close_terminal:
+        'antenna_close',
+
+    close_antenna:
+        'antenna_close'
 };
 
+/*
+ * Dynamic UI strings which are not directly represented by a
+ * data-i18n element can still use these fallback translations.
+ *
+ * Config.Locales always has priority.
+ */
 const TRANSLATION_DEFAULTS = {
     antenna_id: {
         es: 'ID DE ANTENA',
         en: 'ANTENNA ID',
         tr: 'ANTEN KİMLİĞİ',
-        fr: 'ID ANTENNE'
+        fr: 'ID ANTENNE',
+        pt: 'ID DA ANTENA'
     },
 
     antenna_radius: {
         es: 'RADIO DE COBERTURA',
         en: 'COVERAGE RADIUS',
         tr: 'KAPSAMA ALANI',
-        fr: 'RAYON DE COUVERTURE'
+        fr: 'RAYON DE COUVERTURE',
+        pt: 'RAIO DE COBERTURA'
     },
 
     antenna_signal: {
         es: 'SEÑAL DE RED',
         en: 'NETWORK SIGNAL',
         tr: 'AĞ SİNYALİ',
-        fr: 'SIGNAL RÉSEAU'
+        fr: 'SIGNAL RÉSEAU',
+        pt: 'SINAL DA REDE'
     },
 
     antenna_players: {
         es: 'UNIDADES CONECTADAS',
         en: 'CONNECTED UNITS',
         tr: 'BAĞLI BİRİMLER',
-        fr: 'UNITÉS CONNECTÉES'
+        fr: 'UNITÉS CONNECTÉES',
+        pt: 'UNIDADES CONECTADAS'
     },
 
     antenna_distance: {
         es: 'DISTANCIA',
         en: 'DISTANCE',
         tr: 'MESAFE',
-        fr: 'DISTANCE'
+        fr: 'DISTANCE',
+        pt: 'DISTÂNCIA'
     },
 
     antenna_metal: {
         es: 'CHATARRA',
         en: 'SCRAP METAL',
         tr: 'HURDA METAL',
-        fr: 'MÉTAL DE RÉCUPÉRATION'
+        fr: 'MÉTAL DE RÉCUPÉRATION',
+        pt: 'SUCATA'
     },
 
     antenna_electronics: {
         es: 'COMPONENTES ELECTRÓNICOS',
         en: 'ELECTRONIC PARTS',
         tr: 'ELEKTRONİK PARÇALAR',
-        fr: 'COMPOSANTS ÉLECTRONIQUES'
+        fr: 'COMPOSANTS ÉLECTRONIQUES',
+        pt: 'COMPONENTES ELETRÔNICOS'
     },
 
     antenna_cable: {
         es: 'CABLE',
         en: 'CABLE',
         tr: 'KABLO',
-        fr: 'CÂBLE'
+        fr: 'CÂBLE',
+        pt: 'CABO'
+    },
+
+    antenna_repair_kit: {
+        es: 'KIT DE REPARACIÓN',
+        en: 'REPAIR KIT',
+        tr: 'TAMİR KİTİ',
+        fr: 'KIT DE RÉPARATION',
+        pt: 'KIT DE REPARO'
+    },
+
+    antenna_maintenance_kit: {
+        es: 'KIT DE MANTENIMIENTO',
+        en: 'MAINTENANCE KIT',
+        tr: 'BAKIM KİTİ',
+        fr: 'KIT DE MAINTENANCE',
+        pt: 'KIT DE MANUTENÇÃO'
     },
 
     antenna_processing: {
         es: 'PROCESANDO',
         en: 'PROCESSING',
         tr: 'İŞLENİYOR',
-        fr: 'TRAITEMENT'
+        fr: 'TRAITEMENT',
+        pt: 'PROCESSANDO'
     },
 
     antenna_please_wait: {
         es: 'ESPERA MIENTRAS SE COMPLETA LA OPERACIÓN',
         en: 'PLEASE WAIT FOR THE OPERATION TO COMPLETE',
         tr: 'İŞLEM TAMAMLANANA KADAR BEKLEYİN',
-        fr: 'VEUILLEZ ATTENDRE LA FIN DE L’OPÉRATION'
+        fr: 'VEUILLEZ ATTENDRE LA FIN DE L’OPÉRATION',
+        pt: 'AGUARDE ENQUANTO A OPERAÇÃO É CONCLUÍDA'
     },
 
     antenna_operation_complete: {
         es: 'OPERACIÓN COMPLETADA',
         en: 'OPERATION COMPLETE',
         tr: 'İŞLEM TAMAMLANDI',
-        fr: 'OPÉRATION TERMINÉE'
+        fr: 'OPÉRATION TERMINÉE',
+        pt: 'OPERAÇÃO CONCLUÍDA'
     },
 
     antenna_system: {
         es: 'SISTEMA',
         en: 'SYSTEM',
         tr: 'SİSTEM',
-        fr: 'SYSTÈME'
+        fr: 'SYSTÈME',
+        pt: 'SISTEMA'
     },
 
     antenna_no_materials: {
         es: 'SIN MATERIALES',
         en: 'NO MATERIALS',
         tr: 'MALZEME YOK',
-        fr: 'AUCUN MATÉRIAU'
+        fr: 'AUCUN MATÉRIAU',
+        pt: 'SEM MATERIAIS'
     },
 
     antenna_no_cost: {
         es: 'NO REQUERIDO',
         en: 'NOT REQUIRED',
         tr: 'GEREKLİ DEĞİL',
-        fr: 'NON REQUIS'
+        fr: 'NON REQUIS',
+        pt: 'NÃO NECESSÁRIO'
+    },
+
+    antenna_label: {
+        es: 'ANTENA',
+        en: 'ANTENNA',
+        tr: 'ANTEN',
+        fr: 'ANTENNE',
+        pt: 'ANTENA'
+    },
+
+    antenna_interact: {
+        es: '[E] INTERACTUAR',
+        en: '[E] INTERACT',
+        tr: '[E] ETKİLEŞİM',
+        fr: '[E] INTERAGIR',
+        pt: '[E] INTERAGIR'
+    },
+
+    antenna_repair_progress: {
+        es: 'Reparando antena...',
+        en: 'Repairing antenna...',
+        tr: 'Anten onarılıyor...',
+        fr: 'Réparation de l’antenne...',
+        pt: 'Reparando antena...'
+    },
+
+    antenna_maintenance_progress: {
+        es: 'Realizando mantenimiento...',
+        en: 'Performing maintenance...',
+        tr: 'Bakım yapılıyor...',
+        fr: 'Maintenance en cours...',
+        pt: 'Realizando manutenção...'
     }
 };
 
 function translate(key) {
-    const aliasKey =
-        TRANSLATION_ALIASES[key];
+    if (!key) {
+        return '';
+    }
 
+    /*
+     * First priority:
+     * exact key received from Config.Locales.
+     */
     if (
         translations &&
         Object.prototype.hasOwnProperty.call(
@@ -236,8 +316,23 @@ function translate(key) {
             key
         )
     ) {
-        return translations[key];
+        const value = translations[key];
+
+        if (
+            value !== undefined &&
+            value !== null &&
+            value !== ''
+        ) {
+            return String(value);
+        }
     }
+
+    /*
+     * Second priority:
+     * compatibility alias.
+     */
+    const aliasKey =
+        TRANSLATION_ALIASES[key];
 
     if (
         aliasKey &&
@@ -247,9 +342,22 @@ function translate(key) {
             aliasKey
         )
     ) {
-        return translations[aliasKey];
+        const value =
+            translations[aliasKey];
+
+        if (
+            value !== undefined &&
+            value !== null &&
+            value !== ''
+        ) {
+            return String(value);
+        }
     }
 
+    /*
+     * Third priority:
+     * internal fallback.
+     */
     const defaults =
         TRANSLATION_DEFAULTS[key];
 
@@ -258,6 +366,64 @@ function translate(key) {
             defaults[locale] ||
             defaults.en ||
             key
+        );
+    }
+
+    return key;
+}
+
+function translateMaterial(item) {
+    if (!item) {
+        return translate(
+            'antenna_no_materials'
+        );
+    }
+
+    const key =
+        String(item).trim();
+
+    /*
+     * Direct locale key.
+     *
+     * This allows config.lua to define:
+     * radio_cable
+     * scrap_metal
+     * electronic_parts
+     * etc.
+     */
+    if (
+        translations &&
+        Object.prototype.hasOwnProperty.call(
+            translations,
+            key
+        )
+    ) {
+        return String(
+            translations[key]
+        );
+    }
+
+    /*
+     * Known inventory item IDs.
+     */
+    const itemKeys = {
+        radio: 'antenna_radio',
+        radio_antenna: 'antenna_radio',
+        radio_repair_kit: 'antenna_repair_kit',
+        radio_maintenance_kit:
+            'antenna_maintenance_kit',
+        radio_cable: 'antenna_cable',
+        scrap_metal: 'antenna_metal',
+        electronic_parts:
+            'antenna_electronics'
+    };
+
+    const translationKey =
+        itemKeys[key];
+
+    if (translationKey) {
+        return translate(
+            translationKey
         );
     }
 
@@ -280,7 +446,8 @@ function applyLocale(data = {}) {
         data.translations &&
         typeof data.translations === 'object'
     ) {
-        translations = data.translations;
+        translations =
+            data.translations;
     }
 
     document.documentElement.lang =
@@ -1398,7 +1565,7 @@ function renderCost(
                     cost.key ||
                     '';
 
-                return `${amount}x ${item}`;
+                return `${amount}x ${translateMaterial(item)}`;
             })
             .join(' + ');
 }
@@ -1510,8 +1677,10 @@ function renderMaterials(
                 );
 
             label.textContent =
-                material.item ||
-                material.key;
+                translateMaterial(
+                    material.item ||
+                    material.key
+                );
 
             const amount =
                 document.createElement(
